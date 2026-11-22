@@ -2480,7 +2480,47 @@ footer {
 
     .grid {
 
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+
+    }
+
+    .product-image {
+
+        height: 105px;
+
+    }
+
+    .product-info {
+
+        padding: 9px;
+
+    }
+
+    .product h3 {
+
+        min-height: 42px;
+        font-size: 12px;
+
+    }
+
+    .product-info p {
+
+        font-size: 11px;
+
+    }
+
+    .price {
+
+        margin: 6px 0 8px;
+        font-size: 16px;
+
+    }
+
+    .btn-buy {
+
+        padding: 8px 4px;
+        font-size: 10px;
 
     }
 
