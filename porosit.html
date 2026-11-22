@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finalizo Porosinë | OMI STORE</title>
+  <style>
+    :root {
+      --purple: #6a0dad;
+      --purple-dark: #260044;
+      --purple-light: #9b45df;
+      --yellow: #ffd700;
+      --background: #f7f5fb;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: var(--background);
+      color: #202020;
+    }
+
+    .checkout-header {
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 max(20px, 6%);
+      background: var(--purple-dark);
+      color: white;
+    }
+
+    .brand { color: white; text-decoration: none; font-size: 20px; font-weight: 800; }
+    .brand span { color: var(--yellow); }
+
+    .back-link {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .checkout-page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 42px 20px 70px;
+    }
+
+    .checkout-title { margin-bottom: 24px; }
+    .checkout-title span {
+      color: var(--purple);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+    }
+    .checkout-title h1 { margin-top: 5px; font-size: clamp(28px, 5vw, 42px); }
+
+    .checkout-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(320px, .75fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .checkout-card {
+      background: white;
+      border: 1px solid #ece7f1;
+      border-radius: 16px;
+      box-shadow: 0 12px 35px rgba(38, 0, 68, 0.07);
+    }
+
+    .form-card { padding: 24px; }
+    .form-section + .form-section {
+      margin-top: 24px;
+      padding-top: 22px;
+      border-top: 1px solid #eee;
+    }
+
+    .form-section h2 {
+      margin-bottom: 14px;
+      font-size: 18px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    label {
+      display: block;
+      color: #555;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    input, textarea {
+      width: 100%;
+      margin-top: 7px;
+      padding: 13px 14px;
+      border: 1px solid #ddd;
+      border-radius: 9px;
+      outline: none;
+      font: inherit;
+      background: white;
+    }
+
+    textarea { min-height: 82px; resize: vertical; }
+    input:focus, textarea:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px rgba(106, 13, 173, 0.08);
+    }
+
+    .full { grid-column: 1 / -1; }
+
+    .payment-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .payment-option {
+      position: relative;
+      display: block;
+      cursor: pointer;
+    }
+
+    .payment-option input {
+      position: absolute;
+      opacity: 0;
+    }
+
+    .payment-option-content {
+      height: 82px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 14px;
+      border: 2px solid #e8e4ec;
+      border-radius: 10px;
+      transition: 0.2s;
+    }
+
+    .payment-option input:checked + .payment-option-content {
+      border-color: var(--purple);
+      background: #faf7ff;
+    }
+
+    .payment-option strong { color: #222; font-size: 14px; }
+    .payment-option small { margin-top: 4px; color: #777; }
+
+    .secure-note {
+      display: none;
+      margin-top: 12px;
+      padding: 11px 12px;
+      border-radius: 8px;
+      background: #eef9f1;
+      color: #367944;
+      font-size: 12px;
+    }
+
+    .secure-note.show { display: block; }
+
+    .order-summary {
+      position: sticky;
+      top: 20px;
+      padding: 22px;
+    }
+
+    .order-summary h2 { margin-bottom: 14px; font-size: 18px; }
+
+    .summary-items {
+      max-height: 340px;
+      overflow-y: auto;
+    }
+
+    .summary-item {
+      display: grid;
+      grid-template-columns: 48px 1fr auto;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .summary-item img {
+      width: 48px;
+      height: 48px;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      object-fit: contain;
+      object-position: center;
+      background: #fafafa;
+    }
+
+    .summary-item h3 { font-size: 13px; line-height: 1.25; }
+    .summary-item small { color: #777; }
+    .summary-item strong { color: var(--purple); font-size: 13px; }
+
+    .summary-empty {
+      padding: 30px 10px;
+      text-align: center;
+      color: #777;
+    }
+
+    .summary-totals {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #eee;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 7px 0;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .summary-row.total {
+      align-items: center;
+      margin-top: 12px;
+      color: #222;
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .summary-row.total strong {
+      color: var(--purple);
+      font-size: 24px;
+    }
+
+    .place-order {
+      width: 100%;
+      margin-top: 16px;
+      padding: 15px;
+      border: none;
+      border-radius: 9px;
+      background: linear-gradient(135deg, var(--purple), var(--purple-light));
+      color: white;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .place-order:disabled { opacity: .5; cursor: not-allowed; }
+
+    @media (max-width: 820px) {
+      .checkout-layout { grid-template-columns: 1fr; }
+      .order-summary { position: static; order: -1; }
+      .form-grid { grid-template-columns: 1fr; }
+      .full { grid-column: auto; }
+    }
+
+    @media (max-width: 520px) {
+      .checkout-page { padding: 28px 12px 50px; }
+      .form-card, .order-summary { padding: 18px; }
+      .payment-options { grid-template-columns: 1fr; }
+      .back-link { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="checkout-header">
+    <a class="brand" href="./index.html">OMI <span>STORE</span></a>
+    <a class="back-link" href="./index.html#produkter">← Kthehu te produktet</a>
+  </header>
+
+  <main class="checkout-page">
+    <div class="checkout-title">
+      <span>POROSIA PROFESIONALE</span>
+      <h1>Plotëso porosinë</h1>
+    </div>
+
+    <div class="checkout-layout">
+      <form class="checkout-card form-card" id="checkoutForm">
+        <section class="form-section">
+          <h2>1. Të dhënat e dorëzimit</h2>
+          <div class="form-grid">
+            <label class="full">Emri dhe mbiemri
+              <input id="customerName" type="text" autocomplete="name" placeholder="Emri dhe mbiemri" required />
+            </label>
+            <label>Numri i telefonit
+              <input id="customerPhone" type="tel" autocomplete="tel" placeholder="04x xxx xxx" required />
+            </label>
+            <label>Qyteti
+              <input id="customerCity" type="text" autocomplete="address-level2" placeholder="Qyteti" required />
+            </label>
+            <label class="full">Adresa e plotë
+              <input id="customerAddress" type="text" autocomplete="street-address" placeholder="Rruga, numri, hyrja" required />
+            </label>
+            <label class="full">Shënim për dorëzimin
+              <textarea id="orderNote" placeholder="Opsional: informacion shtesë për dorëzimin"></textarea>
+            </label>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h2>2. Mënyra e pagesës</h2>
+          <div class="payment-options">
+            <label class="payment-option">
+              <input type="radio" name="payment" value="Pagesë në dorëzim" checked />
+              <span class="payment-option-content">
+                <strong>💵 Në dorëzim</strong>
+                <small>Paguani kur merrni produktin</small>
+              </span>
+            </label>
+            <label class="payment-option">
+              <input type="radio" name="payment" value="Pagesë me kartë" />
+              <span class="payment-option-content">
+                <strong>💳 Me kartë</strong>
+                <small>Konfirmim i pagesës nga shitësi</small>
+              </span>
+            </label>
+          </div>
+          <div class="secure-note" id="cardNote">
+            Për siguri, mos i shkruani numrin dhe kodin e kartës në këtë faqe.
+            Linku i pagesës së sigurt do të dërgohet pas konfirmimit të porosisë.
+          </div>
+        </section>
+      </form>
+
+      <aside class="checkout-card order-summary">
+        <h2>Përmbledhja e porosisë</h2>
+        <div class="summary-items" id="summaryItems"></div>
+        <div class="summary-totals">
+          <div class="summary-row"><span>Nëntotali</span><strong id="subtotal">0€</strong></div>
+          <div class="summary-row"><span>Dërgesa</span><strong>Konfirmohet</strong></div>
+          <div class="summary-row total"><span>Totali</span><strong id="total">0€</strong></div>
+        </div>
+        <button class="place-order" type="submit" form="checkoutForm" id="placeOrder">Konfirmo porosinë</button>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    const cart = JSON.parse(localStorage.getItem("omiStoreCart") || "[]");
+    const summaryItems = document.getElementById("summaryItems");
+    const subtotal = document.getElementById("subtotal");
+    const total = document.getElementById("total");
+    const placeOrder = document.getElementById("placeOrder");
+
+    function formatPrice(value) {
+      return `${value.toFixed(2).replace(".00", "")}€`;
+    }
+
+    function renderSummary() {
+      if (!cart.length) {
+        summaryItems.innerHTML = '<div class="summary-empty">Shporta është bosh.<br><br><a href="./index.html#produkter">Zgjidh produkte</a></div>';
+        subtotal.textContent = "0€";
+        total.textContent = "0€";
+        placeOrder.disabled = true;
+        return;
+      }
+
+      summaryItems.innerHTML = cart.map((item) => `
+        <div class="summary-item">
+          <img src="./${item.image}" alt="${item.name}" />
+          <div>
+            <h3>${item.name}</h3>
+            <small>Sasia: ${item.quantity}</small>
+          </div>
+          <strong>${formatPrice(item.price * item.quantity)}</strong>
+        </div>
+      `).join("");
+
+      const amount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      subtotal.textContent = formatPrice(amount);
+      total.textContent = formatPrice(amount);
+      placeOrder.disabled = false;
+    }
+
+    renderSummary();
+
+    document.querySelectorAll('input[name="payment"]').forEach((radio) => {
+      radio.addEventListener("change", () => {
+        document.getElementById("cardNote").classList.toggle(
+          "show",
+          radio.checked && radio.value === "Pagesë me kartë"
+        );
+      });
+    });
+
+    document.getElementById("checkoutForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!cart.length) return;
+
+      const name = document.getElementById("customerName").value.trim();
+      const phone = document.getElementById("customerPhone").value.trim();
+      const city = document.getElementById("customerCity").value.trim();
+      const address = document.getElementById("customerAddress").value.trim();
+      const note = document.getElementById("orderNote").value.trim();
+      const payment = document.querySelector('input[name="payment"]:checked').value;
+      const amount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      const orderPayload = {
+        customer: { name, phone, city, address, note },
+        payment,
+        total: amount,
+        items: cart
+      };
+
+      placeOrder.disabled = true;
+      placeOrder.textContent = "Po dërgohet porosia...";
+
+      fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderPayload)
+      })
+        .then(async (response) => {
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || "Porosia nuk u pranua.");
+          return result.order;
+        })
+        .then((savedOrder) => {
+          sessionStorage.setItem("omiStoreLastOrder", JSON.stringify({
+            orderNumber: savedOrder.id,
+            name,
+            phone,
+            city,
+            address,
+            note,
+            payment,
+            total: formatPrice(amount),
+            items: cart
+          }));
+          localStorage.removeItem("omiStoreCart");
+          window.location.href = "./porosia-konfirmuar.html";
+        })
+        .catch((error) => {
+          alert(error.message + " Porosia nuk u ruajt. Ju lutem provoni përsëri.");
+          placeOrder.disabled = false;
+          placeOrder.textContent = "Konfirmo porosinë";
+        });
+    });
+  </script>
+</body>
+</html>

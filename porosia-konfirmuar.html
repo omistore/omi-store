@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Porosia u Konfirmua | OMI STORE</title>
+  <style>
+    :root {
+      --purple: #6a0dad;
+      --purple-dark: #260044;
+      --yellow: #ffd700;
+      --background: #f7f5fb;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background:
+        radial-gradient(circle at top right, rgba(255, 215, 0, 0.12), transparent 28%),
+        linear-gradient(135deg, #faf8ff, var(--background));
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: #202020;
+    }
+
+    .success-card {
+      width: min(560px, 100%);
+      padding: 38px;
+      border-radius: 18px;
+      background: white;
+      box-shadow: 0 18px 50px rgba(38, 0, 68, 0.12);
+      text-align: center;
+    }
+
+    .success-icon {
+      width: 84px;
+      height: 84px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 20px;
+      border-radius: 50%;
+      background: #edf8ef;
+      color: #30984a;
+      font-size: 42px;
+      font-weight: 800;
+    }
+
+    .success-label {
+      color: var(--purple);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+    }
+
+    h1 {
+      margin: 7px 0 10px;
+      font-size: clamp(28px, 7vw, 40px);
+    }
+
+    .success-message {
+      max-width: 430px;
+      margin: 0 auto 22px;
+      color: #666;
+      line-height: 1.65;
+    }
+
+    .order-details {
+      margin: 18px 0 22px;
+      padding: 16px;
+      border: 1px solid #eee;
+      border-radius: 12px;
+      background: #fcfbfd;
+      text-align: left;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 7px 0;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .detail-row strong {
+      color: #222;
+      text-align: right;
+    }
+
+    .order-number {
+      margin-bottom: 12px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #f3eafd;
+      color: var(--purple);
+      font-size: 14px;
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .continue-btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, var(--purple), #9b45df);
+      color: white;
+      text-decoration: none;
+      font-weight: 800;
+    }
+
+    .support-note {
+      margin-top: 12px;
+      color: #777;
+      font-size: 12px;
+    }
+
+    @media (max-width: 520px) {
+      .success-card { padding: 28px 18px; }
+      .detail-row { flex-direction: column; gap: 2px; }
+      .detail-row strong { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <main class="success-card">
+    <div class="success-icon">✓</div>
+    <span class="success-label">POROSIA U PRANUA</span>
+    <h1>Faleminderit!</h1>
+    <p class="success-message">
+      Të dhënat e porosisë janë plotësuar me sukses.
+      Do të kontaktoheni për konfirmimin dhe dorëzimin.
+    </p>
+
+    <div class="order-details" id="orderDetails">
+      <div class="order-number" id="orderNumber">OMI-XXXXXXXX</div>
+      <div class="detail-row"><span>Emri</span><strong id="customerName">-</strong></div>
+      <div class="detail-row"><span>Qyteti</span><strong id="customerCity">-</strong></div>
+      <div class="detail-row"><span>Pagesa</span><strong id="paymentType">-</strong></div>
+      <div class="detail-row"><span>Totali</span><strong id="orderTotal">0€</strong></div>
+    </div>
+
+    <a class="continue-btn" href="./index.html#produkter">Kthehu te produktet</a>
+    <p class="support-note">Mos dërgoni përsëri porosinë; ruani numrin e porosisë për referencë.</p>
+  </main>
+
+  <script>
+    const order = JSON.parse(sessionStorage.getItem("omiStoreLastOrder") || "null");
+
+    if (order) {
+      document.getElementById("orderNumber").textContent = `Porosia: ${order.orderNumber}`;
+      document.getElementById("customerName").textContent = order.name;
+      document.getElementById("customerCity").textContent = order.city;
+      document.getElementById("paymentType").textContent = order.payment;
+      document.getElementById("orderTotal").textContent = order.total;
+    }
+  </script>
+</body>
+</html>

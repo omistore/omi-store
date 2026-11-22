@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OMI STORE | Shitje Online</title>
+  <meta name="description" content="OMI STORE ofron produkte praktike, elektronike dhe pajisje për shtëpi me porosi të shpejtë online." />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <header class="header">
+    <a class="logo" href="#ballina" aria-label="OMI STORE">
+      <img src="./logo.png.png" alt="Logo OMI STORE" />
+      <span>OMI <b>STORE</b></span>
+    </a>
+
+    <button class="menu-toggle" id="menuToggle" aria-label="Hap menu">☰</button>
+
+    <nav class="nav" id="nav">
+      <a href="#ballina">Ballina</a>
+      <a href="#produkter">Produkte</a>
+      <a href="#rreth">Rreth</a>
+      <a href="#kontakt">Kontakt</a>
+    </nav>
+    <button class="cart-trigger" id="cartTrigger" type="button" aria-label="Hap shportën">
+      <span aria-hidden="true">🛒</span>
+      <span class="cart-count" id="headerCartCount">0</span>
+    </button>
+  </header>
+
+  <main id="ballina">
+    <section class="hero">
+      <div class="hero-content">
+        <span class="hero-badge">Produkte praktike • Shitje online</span>
+        <h1>Mirësevini në <span>OMI STORE</span></h1>
+        <p>Gjej produkte të dobishme për shtëpinë, teknologjinë dhe ditën e përditshme me çmime të arsyeshme dhe porosi të shpejtë.</p>
+        <div class="hero-buttons">
+          <a class="hero-btn" href="#produkter">Shiko produktet</a>
+          <a class="hero-secondary" href="#kontakt">Na kontaktoni</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="quick-features">
+      <div class="quick-feature">
+        <span>⚡</span>
+        <div>
+          <strong>Porosi e shpejtë</strong>
+          <small>Shkëmbe porosi në pak minuta</small>
+        </div>
+      </div>
+      <div class="quick-feature">
+        <span>✅</span>
+        <div>
+          <strong>Produkte të verifikuara</strong>
+          <small> Cilësi e mirë dhe mbështetje</small>
+        </div>
+      </div>
+      <div class="quick-feature">
+        <span>🚚</span>
+        <div>
+          <strong>Shërbim i besueshëm</strong>
+          <small>Transport dhe dorëzime të shpejta</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="products" id="produkter">
+      <div class="section-header">
+        <span class="section-label">PRODUKTET E DITËS</span>
+        <h2>Produktet më të kërkuara <span>në stok</span></h2>
+        <p>Shfleto dhe zgjidh produktin që të nevojitet.</p>
+      </div>
+
+      <div class="product-tools">
+        <div class="search-box">
+          <span>🔎</span>
+          <input type="text" id="searchInput" placeholder="Kërko produktin..." />
+        </div>
+        <div class="product-count">Produkte: <span id="productCount">9</span></div>
+      </div>
+
+      <div class="grid">
+        <article class="product" data-name="sprej izolues i zi" data-price="10" data-image="sprejizi.jpg.jpg">
+          <div class="product-image">
+            <img src="sprejizi.jpg.jpg" alt="Sprej izolues i zi" />
+            <span class="product-badge sale">Oferta</span>
+          </div>
+          <div class="product-info">
+            <h3>Sprej Izolues i Zi</h3>
+            <p>1+1 paketë</p>
+            <div class="price">10€</div>
+            <button class="btn-buy add-to-cart" type="button" data-product="Sprej Izolues i Zi">Shto në shportë</button>
+          </div>
+        </article>
+
+        <article class="product" data-name="sprej izolues i bardhë" data-price="13" data-image="sprejibardh.jpg.jpg">
+          <div class="product-image">
+            <img src="sprejibardh.jpg.jpg" alt="Sprej izolues i bardhë" />
+            <span class="product-badge">I ri</span>
+          </div>
+          <div class="product-info">
+            <h3>Sprej Izolues i Bardhë</h3>
+            <p>1+1 paketë</p>
+            <div class="price">13€</div>
+            <button class="btn-buy add-to-cart" type="button" data-product="Sprej Izolues i Bardhë">Shto në shportë</button>
+          </div>
+        </article>
+
+        <article class="product" data-name="riparues çarjesh" data-price="10" data-image="riparues.jpg.png">
+          <div class="product-image">
+            <img src="riparues.jpg.png" alt="Riparues çarjesh" />
+            <span class="product-badge">Popullor</span>
+          </div>
+          <div class="product-info">
+            <h3>Riparues Çarjesh</h3>
+            <p>1+1 paketë</p>
+            <div class="price">10€</div>
+            <button class="btn-buy add-to-cart" type="button" data-product="Riparues Çarjesh">Shto në shportë</button>
+          </div>
+        </article>
+
+        <article class="product" data-name="çakmak me orë" data-price="15" data-image="cakmak.jpg.jpg">
+          <div class="product-image">
+            <img src="cakmak.jpg.jpg" alt="Çakmak me orë" />
+            <span class="product-badge sale">Ofertë</span>
+          </div>
+          <div class="product-info">
+            <h3>Çakmak me Orë</h3>
+            <p>Model elegant</p>
+            <div class="price">15€</div>
+            <button class="btn-buy add-to-cart" type="button" data-product="Çakmak me Orë">Shto në shportë</button>
+          </div>
+        </article>
+
+        <article class="product" data-name="portë sigurie" data-price="40" data-image="port.jpg.jpg">
+          <div class="product-image">
+            <img src="port.jpg.jpg" alt="Portë sigurie" />
+            <span class="product-badge">Siguri</span>
+          </div>
+          <div class="product-info">
+            <h3>Portë Sigurie</h3>
+            <p>Model i fortë</p>
+            <div class="price">40€</div>
+            <button class="btn-buy add-to-cart" type="button" data-product="Portë Sigurie">Shto në shportë</button>
+          </div>
+        </article>
+
+        <article class="product" data-name="go kart për fëmijë" data-price="120" data-image="gokart.jpg.jpg">
+          <div class="product-image">
+            <img src="gokart.jpg.jpg" alt="Go kart për fëmijë" />
+            <span class="product-badge">Për fëmijë</span>
+          </div>
+          <div class="product-info">
+            <h3>Go Kart për Fëmijë</h3>
+            <p>Argëtim me siguri</p>
+            <div class="price">120€</div>
+            <button class="btn-buy add-to-cart" type="button" data-product="Go Kart për Fëmijë">Shto në shportë</button>
+          </div>
+        </article>
+
+        <article class="product" data-name="raft për banjo" data-price="15" data-image="raft.jpg.jpg">
+          <div class="product-image">
+            <img src="raft.jpg.jpg" alt="Raft për banjo" />
+            <span class="product-badge">Praktik</span>
+          </div>
+          <div class="product-info">
+            <h3>Raft për Banjo</h3>
+            <p>Model i thjeshtë</p>
+            <div class="price">15€</div>
+            <button class="btn-buy add-to-cart" type="button" data-product="Raft për Banjo">Shto në shportë</button>
+          </div>
+        </article>
+
+        <article class="product" data-name="drita solare për kopsht" data-price="12" data-image="solare.jpg.jpeg">
+          <div class="product-image">
+            <img src="solare.jpg.jpeg" alt="Drita solare për kopsht" />
+            <span class="product-badge">Shtëpi</span>
+          </div>
+          <div class="product-info">
+            <h3>Drita Solare për Kopsht</h3>
+            <p>Pako 5 copë</p>
+            <div class="price">12€</div>
+            <button class="btn-buy add-to-cart" type="button" data-product="Drita Solare për Kopsht">Shto në shportë</button>
+          </div>
+        </article>
+
+        <article class="product" data-name="perde pvc për verandë" data-price="15" data-image="perde.jpg.jpg">
+          <div class="product-image">
+            <img src="perde.jpg.jpg" alt="Perde PVC për verandë" />
+            <span class="product-badge">Për verandë</span>
+          </div>
+          <div class="product-info">
+            <h3>Perde PVC për Verandë</h3>
+            <p>2x3</p>
+            <div class="price">15€</div>
+            <button class="btn-buy add-to-cart" type="button" data-product="Perde PVC për Verandë">Shto në shportë</button>
+          </div>
+        </article>
+      </div>
+
+      <div class="no-results" id="noResults">
+        <div>🔍</div>
+        <h3>Nuk u gjet asnjë produkt</h3>
+        <p>Provo me një fjalë tjetër ose shiko të gjitha produktet.</p>
+      </div>
+    </section>
+
+    <section class="contact" id="kontakt">
+      <div class="contact-box">
+        <span class="section-label">KONTAKTI</span>
+        <h2>Na shkruani <span>më lehtë</span></h2>
+        <p>Ju mund të na dërgoni një mesazh dhe do t’ju përgjigjemi sa më shpejt.</p>
+
+        <form id="contactForm">
+          <input id="emri" type="text" placeholder="Emri dhe mbiemri" required />
+          <input type="email" placeholder="Email" />
+          <textarea id="mesazhi" placeholder="Shkruaj mesazhin këtu..." required></textarea>
+          <button type="submit">Dërgo në Messenger</button>
+        </form>
+
+        <div class="social-links-row">
+          <a class="social-link" href="https://www.instagram.com/omistoree" target="_blank" rel="noreferrer">📸 Instagram: @omistoree</a>
+          <a class="social-link" href="https://www.facebook.com/omistore" target="_blank" rel="noreferrer">📘 Facebook: OMI Store</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <a class="messenger" href="https://m.me/61575553802511" target="_blank" rel="noreferrer">
+    <img src="ms.jpg" alt="Messenger" />
+  </a>
+
+  <div class="cart-overlay" id="cartOverlay"></div>
+  <aside class="cart-drawer" id="cartDrawer" aria-label="Shporta" aria-hidden="true">
+    <div class="cart-header">
+      <div>
+        <span class="cart-eyebrow">POROSIA JOTE</span>
+        <h2>Shporta <span id="drawerCount">(0)</span></h2>
+      </div>
+      <button class="cart-close" id="cartClose" type="button" aria-label="Mbyll shportën">×</button>
+    </div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-footer">
+      <div class="cart-total-row">
+        <span>Totali</span>
+        <strong id="cartTotal">0€</strong>
+      </div>
+      <a class="checkout-btn" id="checkoutBtn" href="./porosit.html">Vazhdo te porosia</a>
+      <button class="clear-cart" id="clearCart" type="button">Boshatis shportën</button>
+    </div>
+  </aside>
+
+  <button class="back-to-top" id="backToTop" aria-label="Kthehu lart">↑</button>
+
+  <footer>
+    <div class="footer-content">
+      <div>
+        <strong>OMI STORE</strong>
+        <p>Dyqani juaj online për produkte praktike dhe të dobishme.</p>
+      </div>
+      <div class="footer-links">
+        <a href="#ballina">Ballina</a>
+        <a href="#produkter">Produkte</a>
+        <a href="#kontakt">Kontakt</a>
+        <a href="./admin.html">Administrimi</a>
+        <a href="https://www.instagram.com/omistoree" target="_blank" rel="noreferrer">Instagram</a>
+        <a href="https://www.facebook.com/omistore" target="_blank" rel="noreferrer">Facebook</a>
+      </div>
+    </div>
+    <div class="copyright">© 2026 OMI STORE. Të gjitha të drejtat të rezervuara.</div>
+  </footer>
+
+  <script src="./script.js"></script>
+</body>
+</html>

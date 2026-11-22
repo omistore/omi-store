@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OMI STORE | Paneli i Porosive</title>
+  <style>
+    :root { --purple:#6a0dad; --dark:#260044; --yellow:#ffd700; --background:#f6f4fa; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { min-height:100vh; background:var(--background); font-family:"Segoe UI",Arial,sans-serif; color:#242424; }
+    .topbar { height:72px; display:flex; align-items:center; justify-content:space-between; padding:0 5%; background:var(--dark); color:white; }
+    .brand { font-size:21px; font-weight:900; } .brand span { color:var(--yellow); }
+    .logout { border:1px solid rgba(255,255,255,.25); border-radius:8px; background:transparent; color:white; padding:9px 12px; cursor:pointer; }
+    .main { max-width:1200px; margin:auto; padding:34px 20px 60px; }
+    .login, .panel { max-width:460px; margin:60px auto; padding:28px; border-radius:16px; background:white; box-shadow:0 15px 45px rgba(38,0,68,.1); }
+    .login h1, .panel h1 { margin-bottom:16px; }
+    .login input { width:100%; margin:8px 0 14px; padding:13px; border:1px solid #ddd; border-radius:9px; }
+    .login button, .refresh { width:100%; padding:13px; border:none; border-radius:9px; background:var(--purple); color:white; font-weight:800; cursor:pointer; }
+    .panel { display:none; max-width:none; margin:0; padding:0; background:transparent; box-shadow:none; }
+    .panel-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+    .refresh { width:auto; padding:10px 15px; }
+    .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px; }
+    .stat { padding:16px; border:1px solid #eee; border-radius:12px; background:white; }
+    .stat span { display:block; color:#777; font-size:12px; } .stat strong { display:block; margin-top:4px; font-size:24px; color:var(--purple); }
+    .table-wrap { overflow-x:auto; border:1px solid #eee; border-radius:12px; background:white; }
+    table { width:100%; border-collapse:collapse; min-width:820px; }
+    th, td { padding:13px; border-bottom:1px solid #eee; text-align:left; vertical-align:top; font-size:13px; }
+    th { background:#faf8fc; color:#666; } td small { display:block; margin-top:3px; color:#777; }
+    select { padding:8px; border:1px solid #ddd; border-radius:7px; background:white; }
+    .empty { padding:30px; text-align:center; color:#777; }
+    .error { margin-top:10px; color:#b3261e; font-size:13px; }
+    @media(max-width:800px) { .stats { grid-template-columns:1fr 1fr; } .topbar { padding:0 18px; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">OMI <span>STORE</span> | Admin</div>
+    <button class="logout" id="logout" type="button" style="display:none">Dil</button>
+  </header>
+  <main class="main">
+    <section class="login" id="login">
+      <h1>Hyrja në panel</h1>
+      <input id="adminKey" type="password" placeholder="Çelësi i administratorit" />
+      <button id="loginBtn" type="button">Hyr</button>
+      <div class="error" id="loginError"></div>
+    </section>
+
+    <section class="panel" id="panel">
+      <div class="panel-head">
+        <h1>Porositë</h1>
+        <button class="refresh" id="refresh" type="button">↻ Rifresko</button>
+      </div>
+      <div class="stats" id="stats"></div>
+      <div class="table-wrap" id="ordersTable"></div>
+    </section>
+  </main>
+
+  <script>
+    const login = document.getElementById("login");
+    const panel = document.getElementById("panel");
+    const logout = document.getElementById("logout");
+    let adminKey = sessionStorage.getItem("omiAdminKey") || "";
+
+    async function loadOrders() {
+      const response = await fetch("/api/admin/orders", { headers: { "X-Admin-Key": adminKey } });
+      if (response.status === 401) throw new Error("Çelësi i administratorit është i gabuar.");
+      if (!response.ok) throw new Error("Porositë nuk u ngarkuan.");
+      return (await response.json()).orders;
+    }
+
+    function formatDate(value) {
+      return new Date(value).toLocaleString("sq-AL");
+    }
+
+    function formatPrice(value) {
+      return `${Number(value || 0).toFixed(2).replace(".00", "")}€`;
+    }
+
+    async function render() {
+      try {
+        const orders = await loadOrders();
+        const confirmed = orders.filter((order) => order.status === "Konfirmuar").length;
+        const transport = orders.filter((order) => order.status === "Në transport").length;
+        const delivered = orders.filter((order) => order.status === "Dorëzuar").length;
+        document.getElementById("stats").innerHTML = `
+          <div class="stat"><span>Të gjitha</span><strong>${orders.length}</strong></div>
+          <div class="stat"><span>Konfirmuar</span><strong>${confirmed}</strong></div>
+          <div class="stat"><span>Në transport</span><strong>${transport}</strong></div>
+          <div class="stat"><span>Dorëzuar</span><strong>${delivered}</strong></div>`;
+
+        if (!orders.length) {
+          document.getElementById("ordersTable").innerHTML = '<div class="empty">Nuk ka porosi ende.</div>';
+          return;
+        }
+
+        document.getElementById("ordersTable").innerHTML = `
+          <table>
+            <thead><tr><th>Porosia</th><th>Klienti</th><th>Produkte</th><th>Totali / Pagesa</th><th>Statusi</th></tr></thead>
+            <tbody>${orders.map((order) => `
+              <tr>
+                <td><strong>${order.id}</strong><small>${formatDate(order.createdAt)}</small></td>
+                <td><strong>${order.customer.name}</strong><small>${order.customer.phone}</small><small>${order.customer.city}, ${order.customer.address}</small></td>
+                <td>${(order.items || []).map((item) => `${item.name} × ${item.quantity}`).join("<br>")}</td>
+                <td><strong>${formatPrice(order.total)}</strong><small>${order.payment}</small></td>
+                <td>
+                  <select data-order-id="${order.id}">
+                    ${["I ri","Konfirmuar","Në transport","Dorëzuar","Anuluar"].map((status) =>
+                      `<option${status === order.status ? " selected" : ""}>${status}</option>`
+                    ).join("")}
+                  </select>
+                </td>
+              </tr>`).join("")}</tbody>
+          </table>`;
+
+        document.querySelectorAll("select[data-order-id]").forEach((select) => {
+          select.addEventListener("change", async () => {
+            await fetch(`/api/admin/orders/${encodeURIComponent(select.dataset.orderId)}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json", "X-Admin-Key": adminKey },
+              body: JSON.stringify({ status: select.value })
+            });
+            render();
+          });
+        });
+      } catch (error) {
+        document.getElementById("ordersTable").innerHTML = `<div class="empty">${error.message}</div>`;
+      }
+    }
+
+    async function openPanel() {
+      login.style.display = "none";
+      panel.style.display = "block";
+      logout.style.display = "block";
+      await render();
+    }
+
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      adminKey = document.getElementById("adminKey").value.trim();
+      sessionStorage.setItem("omiAdminKey", adminKey);
+      try {
+        await loadOrders();
+        openPanel();
+      } catch (error) {
+        document.getElementById("loginError").textContent = error.message;
+      }
+    });
+
+    document.getElementById("refresh").addEventListener("click", render);
+    logout.addEventListener("click", () => {
+      sessionStorage.removeItem("omiAdminKey");
+      location.reload();
+    });
+
+    if (adminKey) openPanel();
+  </script>
+</body>
+</html>
