@@ -332,6 +332,12 @@ textarea {
 
     min-height: 570px;
 
+    position: relative;
+
+    isolation: isolate;
+
+    overflow: hidden;
+
 
 
     display: flex;
@@ -364,11 +370,26 @@ textarea {
 
 }
 
+.hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("./logo.png.png");
+    background-repeat: no-repeat;
+    background-position: right clamp(20px, 8vw, 120px) center;
+    background-size: auto 78%;
+    opacity: 0.1;
+    pointer-events: none;
+}
 
 
 .hero-content {
 
     max-width: 800px;
+
+    position: relative;
+
+    z-index: 1;
 
 
 
@@ -2186,6 +2207,12 @@ footer {
 
         min-height: 520px;
 
+    }
+
+    .hero::before {
+        background-position: center 55%;
+        background-size: auto 66%;
+        opacity: 0.06;
     }
 
 
