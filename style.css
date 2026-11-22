@@ -376,9 +376,9 @@ textarea {
     inset: 0;
     background-image: url("./logo.png.png");
     background-repeat: no-repeat;
-    background-position: right clamp(20px, 8vw, 120px) center;
-    background-size: auto 78%;
-    opacity: 0.1;
+    background-position: left clamp(20px, 4vw, 60px) center;
+    background-size: auto 76%;
+    opacity: 0.17;
     pointer-events: none;
 }
 
