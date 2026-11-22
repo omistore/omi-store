@@ -335,6 +335,8 @@
     </div>
   </main>
 
+  <script src="./supabase-config.js"></script>
+  <script src="./supabase-client.js"></script>
   <script>
     const cart = JSON.parse(localStorage.getItem("omiStoreCart") || "[]");
     const summaryItems = document.getElementById("summaryItems");
@@ -383,7 +385,7 @@
       });
     });
 
-    document.getElementById("checkoutForm").addEventListener("submit", (event) => {
+    document.getElementById("checkoutForm").addEventListener("submit", async (event) => {
       event.preventDefault();
       if (!cart.length) return;
 
@@ -394,29 +396,23 @@
       const note = document.getElementById("orderNote").value.trim();
       const payment = document.querySelector('input[name="payment"]:checked').value;
       const amount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-      const orderPayload = {
-        customer: { name, phone, city, address, note },
-        payment,
-        total: amount,
-        items: cart
-      };
+      const orderNumber = `OMI-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
 
       placeOrder.disabled = true;
       placeOrder.textContent = "Po dërgohet porosia...";
 
-      fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderPayload)
-      })
-        .then(async (response) => {
-          const result = await response.json();
-          if (!response.ok) throw new Error(result.error || "Porosia nuk u pranua.");
-          return result.order;
-        })
-        .then((savedOrder) => {
-          sessionStorage.setItem("omiStoreLastOrder", JSON.stringify({
-            orderNumber: savedOrder.id,
+      try {
+        await window.OmiSupabase.insertOrder({
+          order_number: orderNumber,
+          customer: { name, phone, city, address, note },
+          payment,
+          total: amount,
+          items: cart,
+          status: "I ri"
+        });
+
+        sessionStorage.setItem("omiStoreLastOrder", JSON.stringify({
+            orderNumber,
             name,
             phone,
             city,
@@ -425,15 +421,14 @@
             payment,
             total: formatPrice(amount),
             items: cart
-          }));
-          localStorage.removeItem("omiStoreCart");
-          window.location.href = "./porosia-konfirmuar.html";
-        })
-        .catch((error) => {
-          alert(error.message + " Porosia nuk u ruajt. Ju lutem provoni përsëri.");
-          placeOrder.disabled = false;
-          placeOrder.textContent = "Konfirmo porosinë";
-        });
+        }));
+        localStorage.removeItem("omiStoreCart");
+        window.location.href = "./porosia-konfirmuar.html";
+      } catch (error) {
+        alert(`${error.message} Porosia nuk u ruajt. Ju lutem provoni përsëri.`);
+        placeOrder.disabled = false;
+        placeOrder.textContent = "Konfirmo porosinë";
+      }
     });
   </script>
 </body>

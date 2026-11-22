@@ -40,7 +40,8 @@
   <main class="main">
     <section class="login" id="login">
       <h1>Hyrja në panel</h1>
-      <input id="adminKey" type="password" placeholder="Çelësi i administratorit" />
+      <input id="adminEmail" type="email" autocomplete="username" placeholder="Email i administratorit" />
+      <input id="adminPassword" type="password" autocomplete="current-password" placeholder="Fjalëkalimi" />
       <button id="loginBtn" type="button">Hyr</button>
       <div class="error" id="loginError"></div>
     </section>
@@ -55,17 +56,22 @@
     </section>
   </main>
 
+  <script src="./supabase-config.js"></script>
+  <script src="./supabase-client.js"></script>
   <script>
     const login = document.getElementById("login");
     const panel = document.getElementById("panel");
     const logout = document.getElementById("logout");
-    let adminKey = sessionStorage.getItem("omiAdminKey") || "";
+    const loginError = document.getElementById("loginError");
 
-    async function loadOrders() {
-      const response = await fetch("/api/admin/orders", { headers: { "X-Admin-Key": adminKey } });
-      if (response.status === 401) throw new Error("Çelësi i administratorit është i gabuar.");
-      if (!response.ok) throw new Error("Porositë nuk u ngarkuan.");
-      return (await response.json()).orders;
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[character]);
     }
 
     function formatDate(value) {
@@ -78,7 +84,7 @@
 
     async function render() {
       try {
-        const orders = await loadOrders();
+        const orders = await window.OmiSupabase.getOrders();
         const confirmed = orders.filter((order) => order.status === "Konfirmuar").length;
         const transport = orders.filter((order) => order.status === "Në transport").length;
         const delivered = orders.filter((order) => order.status === "Dorëzuar").length;
@@ -98,36 +104,42 @@
             <thead><tr><th>Porosia</th><th>Klienti</th><th>Produkte</th><th>Totali / Pagesa</th><th>Statusi</th></tr></thead>
             <tbody>${orders.map((order) => `
               <tr>
-                <td><strong>${order.id}</strong><small>${formatDate(order.createdAt)}</small></td>
-                <td><strong>${order.customer.name}</strong><small>${order.customer.phone}</small><small>${order.customer.city}, ${order.customer.address}</small></td>
-                <td>${(order.items || []).map((item) => `${item.name} × ${item.quantity}`).join("<br>")}</td>
-                <td><strong>${formatPrice(order.total)}</strong><small>${order.payment}</small></td>
+                <td><strong>${escapeHtml(order.order_number)}</strong><small>${escapeHtml(formatDate(order.created_at))}</small></td>
+                <td><strong>${escapeHtml(order.customer?.name)}</strong><small>${escapeHtml(order.customer?.phone)}</small><small>${escapeHtml(order.customer?.city)}, ${escapeHtml(order.customer?.address)}</small>${order.customer?.note ? `<small>Shënim: ${escapeHtml(order.customer.note)}</small>` : ""}</td>
+                <td>${(order.items || []).map((item) => `${escapeHtml(item.name)} × ${escapeHtml(item.quantity)}`).join("<br>")}</td>
+                <td><strong>${escapeHtml(formatPrice(order.total))}</strong><small>${escapeHtml(order.payment)}</small></td>
                 <td>
-                  <select data-order-id="${order.id}">
+                  <select data-order-number="${escapeHtml(order.order_number)}">
                     ${["I ri","Konfirmuar","Në transport","Dorëzuar","Anuluar"].map((status) =>
-                      `<option${status === order.status ? " selected" : ""}>${status}</option>`
+                      `<option${status === order.status ? " selected" : ""}>${escapeHtml(status)}</option>`
                     ).join("")}
                   </select>
                 </td>
               </tr>`).join("")}</tbody>
           </table>`;
 
-        document.querySelectorAll("select[data-order-id]").forEach((select) => {
+        document.querySelectorAll("select[data-order-number]").forEach((select) => {
           select.addEventListener("change", async () => {
-            await fetch(`/api/admin/orders/${encodeURIComponent(select.dataset.orderId)}`, {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json", "X-Admin-Key": adminKey },
-              body: JSON.stringify({ status: select.value })
-            });
-            render();
+            select.disabled = true;
+            try {
+              await window.OmiSupabase.updateOrderStatus(select.dataset.orderNumber, select.value);
+              await render();
+            } catch (error) {
+              document.getElementById("ordersTable").insertAdjacentHTML(
+                "afterbegin",
+                `<div class="error">${escapeHtml(error.message)}</div>`
+              );
+              select.disabled = false;
+            }
           });
         });
       } catch (error) {
-        document.getElementById("ordersTable").innerHTML = `<div class="empty">${error.message}</div>`;
+        document.getElementById("ordersTable").innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
       }
     }
 
     async function openPanel() {
+      await window.OmiSupabase.verifyAdmin();
       login.style.display = "none";
       panel.style.display = "block";
       logout.style.display = "block";
@@ -135,23 +147,27 @@
     }
 
     document.getElementById("loginBtn").addEventListener("click", async () => {
-      adminKey = document.getElementById("adminKey").value.trim();
-      sessionStorage.setItem("omiAdminKey", adminKey);
+      const email = document.getElementById("adminEmail").value.trim();
+      const password = document.getElementById("adminPassword").value;
       try {
-        await loadOrders();
-        openPanel();
+        await window.OmiSupabase.signIn(email, password);
+        await openPanel();
       } catch (error) {
-        document.getElementById("loginError").textContent = error.message;
+        loginError.textContent = error.message;
       }
     });
 
     document.getElementById("refresh").addEventListener("click", render);
-    logout.addEventListener("click", () => {
-      sessionStorage.removeItem("omiAdminKey");
+    logout.addEventListener("click", async () => {
+      await window.OmiSupabase.signOut();
       location.reload();
     });
 
-    if (adminKey) openPanel();
+    if (window.OmiSupabase.hasSession()) {
+      openPanel().catch((error) => {
+        loginError.textContent = error.message;
+      });
+    }
   </script>
 </body>
 </html>
