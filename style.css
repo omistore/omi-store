@@ -370,7 +370,7 @@ textarea {
     background-repeat: no-repeat;
     background-position: center center;
     background-size: auto 82%;
-    opacity: 0.28;
+    opacity: 0.08;
     pointer-events: none;
 }
 
@@ -2536,7 +2536,7 @@ footer {
     .hero::before {
         background-position: center 55%;
         background-size: auto 76%;
-        opacity: 0.16;
+        opacity: 0.05;
     }
 
 
