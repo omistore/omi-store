@@ -2,22 +2,26 @@
 <html lang="sq">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OMI STORE | Paneli i Porosive</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>OMI STORE | Paneli i Administrimit</title>
   <style>
-    :root { --purple:#6a0dad; --dark:#260044; --yellow:#ffd700; --background:#f6f4fa; }
+    :root { --purple:#6a0dad; --dark:#260044; --yellow:#ffd700; --background:#f6f4fa; --border:#e8e3ed; }
     * { box-sizing:border-box; margin:0; padding:0; }
     body { min-height:100vh; background:var(--background); font-family:"Segoe UI",Arial,sans-serif; color:#242424; }
     .topbar { height:72px; display:flex; align-items:center; justify-content:space-between; padding:0 5%; background:var(--dark); color:white; }
     .brand { font-size:21px; font-weight:900; } .brand span { color:var(--yellow); }
     .logout { border:1px solid rgba(255,255,255,.25); border-radius:8px; background:transparent; color:white; padding:9px 12px; cursor:pointer; }
     .main { max-width:1200px; margin:auto; padding:34px 20px 60px; }
-    .login, .panel { max-width:460px; margin:60px auto; padding:28px; border-radius:16px; background:white; box-shadow:0 15px 45px rgba(38,0,68,.1); }
-    .login h1, .panel h1 { margin-bottom:16px; }
-    .login input { width:100%; margin:8px 0 14px; padding:13px; border:1px solid #ddd; border-radius:9px; }
+    .login { max-width:460px; margin:60px auto; padding:28px; border-radius:16px; background:white; box-shadow:0 15px 45px rgba(38,0,68,.1); }
+    .login h1 { margin-bottom:16px; }
+    .login input { width:100%; margin:8px 0 14px; padding:13px; border:1px solid #ddd; border-radius:9px; font-size:16px; }
     .login button, .refresh { width:100%; padding:13px; border:none; border-radius:9px; background:var(--purple); color:white; font-weight:800; cursor:pointer; }
-    .panel { display:none; max-width:none; margin:0; padding:0; background:transparent; box-shadow:none; }
-    .panel-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+    .panel { display:none; }
+    .tabs { display:flex; gap:8px; margin-bottom:18px; overflow-x:auto; }
+    .tab { border:1px solid var(--border); background:white; border-radius:9px; padding:11px 16px; font-weight:800; cursor:pointer; white-space:nowrap; }
+    .tab.active { border-color:var(--purple); background:var(--purple); color:white; }
+    .view { display:none; } .view.active { display:block; }
+    .panel-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; }
     .refresh { width:auto; padding:10px 15px; }
     .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px; }
     .stat { padding:16px; border:1px solid #eee; border-radius:12px; background:white; }
@@ -29,7 +33,41 @@
     select { padding:8px; border:1px solid #ddd; border-radius:7px; background:white; }
     .empty { padding:30px; text-align:center; color:#777; }
     .error { margin-top:10px; color:#b3261e; font-size:13px; }
-    @media(max-width:800px) { .stats { grid-template-columns:1fr 1fr; } .topbar { padding:0 18px; } }
+    .product-layout { display:grid; grid-template-columns:minmax(280px,380px) 1fr; gap:18px; align-items:start; }
+    .card { border:1px solid var(--border); border-radius:14px; background:white; padding:18px; }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .field { display:flex; flex-direction:column; gap:6px; }
+    .field.full { grid-column:1/-1; }
+    .field label { font-size:12px; font-weight:800; color:#62556c; }
+    .field input, .field textarea, .field select { width:100%; border:1px solid #ddd; border-radius:9px; padding:11px; background:white; font-size:16px; }
+    .field textarea { min-height:84px; resize:vertical; }
+    .check { display:flex; align-items:center; gap:9px; min-height:42px; }
+    .check input { width:18px; height:18px; }
+    .preview { width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:10px; background:#f1edf4; margin-bottom:12px; }
+    .save { width:100%; border:none; border-radius:9px; background:var(--purple); color:white; padding:13px; font-weight:900; cursor:pointer; }
+    .cancel { width:100%; border:1px solid var(--border); border-radius:9px; background:white; color:#555; padding:11px; font-weight:800; cursor:pointer; margin-top:8px; }
+    .product-list { display:grid; gap:10px; }
+    .product-row { display:grid; grid-template-columns:74px minmax(150px,1fr) auto; gap:12px; align-items:center; border:1px solid var(--border); border-radius:12px; padding:10px; background:white; }
+    .product-row img { width:74px; height:74px; object-fit:cover; border-radius:9px; background:#eee; }
+    .product-row h3 { font-size:15px; margin-bottom:4px; }
+    .product-row p { color:#777; font-size:12px; }
+    .actions { display:flex; gap:7px; flex-wrap:wrap; justify-content:flex-end; }
+    .action { border:1px solid var(--border); background:white; border-radius:8px; padding:8px 10px; cursor:pointer; font-weight:800; }
+    .action.danger { color:#b3261e; }
+    .status { display:inline-block; border-radius:999px; padding:4px 8px; font-size:11px; font-weight:900; margin-top:5px; }
+    .status.on { background:#dff4e7; color:#19733a; } .status.off { background:#f1f1f1; color:#777; }
+    @media(max-width:850px) {
+      .main { padding:18px 12px 40px; } .topbar { height:64px; padding:0 14px; }
+      .brand { font-size:17px; } .stats { grid-template-columns:1fr 1fr; }
+      .product-layout { grid-template-columns:1fr; }
+      .product-row { grid-template-columns:62px 1fr; }
+      .product-row img { width:62px; height:62px; } .actions { grid-column:1/-1; justify-content:flex-start; }
+    }
+    @media(max-width:520px) {
+      .form-grid { grid-template-columns:1fr; } .field.full { grid-column:auto; }
+      .stats { gap:8px; } .stat { padding:12px; } .stat strong { font-size:20px; }
+      .panel-head { align-items:flex-start; } .panel-head h1 { font-size:22px; }
+    }
   </style>
 </head>
 <body>
@@ -47,12 +85,79 @@
     </section>
 
     <section class="panel" id="panel">
-      <div class="panel-head">
-        <h1>Porositë</h1>
-        <button class="refresh" id="refresh" type="button">↻ Rifresko</button>
-      </div>
-      <div class="stats" id="stats"></div>
-      <div class="table-wrap" id="ordersTable"></div>
+      <nav class="tabs" aria-label="Seksionet e panelit">
+        <button class="tab active" type="button" data-view="ordersView">Porositë</button>
+        <button class="tab" type="button" data-view="productsView">Produktet</button>
+      </nav>
+
+      <section class="view active" id="ordersView">
+        <div class="panel-head">
+          <h1>Porositë</h1>
+          <button class="refresh" id="refreshOrders" type="button">↻ Rifresko</button>
+        </div>
+        <div class="stats" id="stats"></div>
+        <div class="table-wrap" id="ordersTable"></div>
+      </section>
+
+      <section class="view" id="productsView">
+        <div class="panel-head">
+          <h1>Produkte</h1>
+          <button class="refresh" id="refreshProducts" type="button">↻ Rifresko</button>
+        </div>
+        <div class="product-layout">
+          <form class="card" id="productForm">
+            <h2 id="formTitle" style="margin-bottom:14px">Shto produkt të ri</h2>
+            <img class="preview" id="imagePreview" src="logo.png" alt="Parapamje e produktit" />
+            <div class="form-grid">
+              <div class="field full">
+                <label for="productName">Emri i produktit *</label>
+                <input id="productName" required maxlength="120" />
+              </div>
+              <div class="field full">
+                <label for="productImage">Fotografia nga telefoni/kompjuteri *</label>
+                <input id="productImage" type="file" accept="image/*" capture="environment" />
+              </div>
+              <div class="field">
+                <label for="productPrice">Çmimi aktual (€) *</label>
+                <input id="productPrice" type="number" min="0" step="0.01" required />
+              </div>
+              <div class="field">
+                <label for="oldPrice">Çmimi i vjetër (€)</label>
+                <input id="oldPrice" type="number" min="0" step="0.01" />
+              </div>
+              <div class="field full">
+                <label for="productDescription">Përshkrimi</label>
+                <textarea id="productDescription"></textarea>
+              </div>
+              <div class="field full">
+                <label for="productSpecs">Specifikat (ndaji me presje)</label>
+                <input id="productSpecs" placeholder="Ngjyra: e zezë, Material: metal" />
+              </div>
+              <div class="field">
+                <label for="productCategory">Kategoria</label>
+                <input id="productCategory" maxlength="80" placeholder="P.sh. Shtëpia" />
+              </div>
+              <div class="field">
+                <label for="productStock">Sasia në stok</label>
+                <input id="productStock" type="number" min="0" step="1" value="0" required />
+              </div>
+              <div class="field full check">
+                <input id="productActive" type="checkbox" checked />
+                <label for="productActive">Produkt aktiv</label>
+              </div>
+              <div class="field full">
+                <button class="save" id="saveProduct" type="submit">Ruaj produktin</button>
+                <button class="cancel" id="cancelEdit" type="button" style="display:none">Anulo editimin</button>
+              </div>
+              <div class="error field full" id="productError"></div>
+            </div>
+          </form>
+          <div class="card">
+            <h2 style="margin-bottom:12px">Lista e produkteve</h2>
+            <div class="product-list" id="productList"><div class="empty">Po ngarkohen produktet...</div></div>
+          </div>
+        </div>
+      </section>
     </section>
   </main>
 
@@ -63,26 +168,18 @@
     const panel = document.getElementById("panel");
     const logout = document.getElementById("logout");
     const loginError = document.getElementById("loginError");
+    let editingName = null;
+    let editingImageUrl = null;
 
     function escapeHtml(value) {
       return String(value ?? "").replace(/[&<>"']/g, (character) => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;"
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
       })[character]);
     }
+    function formatDate(value) { return new Date(value).toLocaleString("sq-AL"); }
+    function formatPrice(value) { return `${Number(value || 0).toFixed(2).replace(".00", "")}€`; }
 
-    function formatDate(value) {
-      return new Date(value).toLocaleString("sq-AL");
-    }
-
-    function formatPrice(value) {
-      return `${Number(value || 0).toFixed(2).replace(".00", "")}€`;
-    }
-
-    async function render() {
+    async function renderOrders() {
       try {
         const orders = await window.OmiSupabase.getOrders();
         const confirmed = orders.filter((order) => order.status === "Konfirmuar").length;
@@ -93,44 +190,23 @@
           <div class="stat"><span>Konfirmuar</span><strong>${confirmed}</strong></div>
           <div class="stat"><span>Në transport</span><strong>${transport}</strong></div>
           <div class="stat"><span>Dorëzuar</span><strong>${delivered}</strong></div>`;
-
         if (!orders.length) {
           document.getElementById("ordersTable").innerHTML = '<div class="empty">Nuk ka porosi ende.</div>';
           return;
         }
-
         document.getElementById("ordersTable").innerHTML = `
-          <table>
-            <thead><tr><th>Porosia</th><th>Klienti</th><th>Produkte</th><th>Totali / Pagesa</th><th>Statusi</th></tr></thead>
-            <tbody>${orders.map((order) => `
-              <tr>
-                <td><strong>${escapeHtml(order.order_number)}</strong><small>${escapeHtml(formatDate(order.created_at))}</small></td>
-                <td><strong>${escapeHtml(order.customer?.name)}</strong><small>${escapeHtml(order.customer?.phone)}</small><small>${escapeHtml(order.customer?.city)}, ${escapeHtml(order.customer?.address)}</small>${order.customer?.note ? `<small>Shënim: ${escapeHtml(order.customer.note)}</small>` : ""}</td>
-                <td>${(order.items || []).map((item) => `${escapeHtml(item.name)} × ${escapeHtml(item.quantity)}`).join("<br>")}</td>
-                <td><strong>${escapeHtml(formatPrice(order.total))}</strong><small>${escapeHtml(order.payment)}</small></td>
-                <td>
-                  <select data-order-number="${escapeHtml(order.order_number)}">
-                    ${["I ri","Konfirmuar","Në transport","Dorëzuar","Anuluar"].map((status) =>
-                      `<option${status === order.status ? " selected" : ""}>${escapeHtml(status)}</option>`
-                    ).join("")}
-                  </select>
-                </td>
-              </tr>`).join("")}</tbody>
-          </table>`;
-
+          <table><thead><tr><th>Porosia</th><th>Klienti</th><th>Produkte</th><th>Totali / Pagesa</th><th>Statusi</th></tr></thead>
+          <tbody>${orders.map((order) => `
+            <tr><td><strong>${escapeHtml(order.order_number)}</strong><small>${escapeHtml(formatDate(order.created_at))}</small></td>
+            <td><strong>${escapeHtml(order.customer?.name)}</strong><small>${escapeHtml(order.customer?.phone)}</small><small>${escapeHtml(order.customer?.city)}, ${escapeHtml(order.customer?.address)}</small>${order.customer?.note ? `<small>Shënim: ${escapeHtml(order.customer.note)}</small>` : ""}</td>
+            <td>${(order.items || []).map((item) => `${escapeHtml(item.name)} × ${escapeHtml(item.quantity)}`).join("<br>")}</td>
+            <td><strong>${escapeHtml(formatPrice(order.total))}</strong><small>${escapeHtml(order.payment)}</small></td>
+            <td><select data-order-number="${escapeHtml(order.order_number)}">${["I ri","Konfirmuar","Në transport","Dorëzuar","Anuluar"].map((status) => `<option${status === order.status ? " selected" : ""}>${escapeHtml(status)}</option>`).join("")}</select></td></tr>`).join("")}</tbody></table>`;
         document.querySelectorAll("select[data-order-number]").forEach((select) => {
           select.addEventListener("change", async () => {
             select.disabled = true;
-            try {
-              await window.OmiSupabase.updateOrderStatus(select.dataset.orderNumber, select.value);
-              await render();
-            } catch (error) {
-              document.getElementById("ordersTable").insertAdjacentHTML(
-                "afterbegin",
-                `<div class="error">${escapeHtml(error.message)}</div>`
-              );
-              select.disabled = false;
-            }
+            try { await window.OmiSupabase.updateOrderStatus(select.dataset.orderNumber, select.value); await renderOrders(); }
+            catch (error) { document.getElementById("ordersTable").insertAdjacentHTML("afterbegin", `<div class="error">${escapeHtml(error.message)}</div>`); select.disabled = false; }
           });
         });
       } catch (error) {
@@ -138,35 +214,168 @@
       }
     }
 
+    function resetProductForm() {
+      editingName = null;
+      editingImageUrl = null;
+      document.getElementById("productForm").reset();
+      document.getElementById("productActive").checked = true;
+      document.getElementById("productStock").value = "0";
+      document.getElementById("imagePreview").src = "logo.png";
+      document.getElementById("formTitle").textContent = "Shto produkt të ri";
+      document.getElementById("productImage").required = true;
+      document.getElementById("cancelEdit").style.display = "none";
+      document.getElementById("saveProduct").textContent = "Ruaj produktin";
+      document.getElementById("productError").textContent = "";
+    }
+
+    async function renderProducts() {
+      const list = document.getElementById("productList");
+      try {
+        const products = await window.OmiSupabase.getAdminProducts();
+        if (!products.length) { list.innerHTML = '<div class="empty">Nuk ka produkte.</div>'; return; }
+        list.innerHTML = products.map((product) => {
+          const specs = Array.isArray(product.specifications) ? product.specifications.join(", ") : (product.specifications || "");
+          return `
+            <div class="product-row">
+              <img src="${escapeHtml(product.image_url || "logo.png")}" alt="${escapeHtml(product.name)}" />
+              <div><h3>${escapeHtml(product.name)}</h3><p>${escapeHtml(formatPrice(product.price))} · Stok: ${escapeHtml(product.stock)} · ${escapeHtml(product.category)}</p><p>${escapeHtml(specs)}</p><span class="status ${product.active ? "on" : "off"}">${product.active ? "Aktiv" : "Joaktiv"}</span></div>
+              <div class="actions">
+                <button class="action" type="button" data-action="edit" data-name="${escapeHtml(product.name)}">Edito</button>
+                <button class="action" type="button" data-action="toggle" data-name="${escapeHtml(product.name)}">${product.active ? "Çaktivizo" : "Aktivizo"}</button>
+                <button class="action danger" type="button" data-action="delete" data-name="${escapeHtml(product.name)}">Fshi</button>
+              </div>
+            </div>`;
+        }).join("");
+        list.querySelectorAll("[data-action]").forEach((button) => button.addEventListener("click", handleProductAction));
+      } catch (error) {
+        list.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+      }
+    }
+
+    async function handleProductAction(event) {
+      const button = event.currentTarget;
+      const action = button.dataset.action;
+      const name = button.dataset.name;
+      try {
+        const products = await window.OmiSupabase.getAdminProducts();
+        const product = products.find((item) => item.name === name);
+        if (!product) return;
+        if (action === "toggle") {
+          await window.OmiSupabase.updateProduct(name, { active: !product.active });
+          await renderProducts();
+        } else if (action === "delete") {
+          if (!confirm(`Të fshihet "${name}"?`)) return;
+          await window.OmiSupabase.deleteProduct(product);
+          if (editingName === name) resetProductForm();
+          await renderProducts();
+        } else if (action === "edit") {
+          editingName = name;
+          editingImageUrl = product.image_url;
+          document.getElementById("formTitle").textContent = "Edito produktin";
+          document.getElementById("productName").value = product.name || "";
+          document.getElementById("productPrice").value = product.price || "";
+          document.getElementById("oldPrice").value = product.old_price || "";
+          document.getElementById("productDescription").value = product.description || "";
+          document.getElementById("productSpecs").value = Array.isArray(product.specifications) ? product.specifications.join(", ") : "";
+          document.getElementById("productCategory").value = product.category || "";
+          document.getElementById("productStock").value = product.stock || 0;
+          document.getElementById("productActive").checked = Boolean(product.active);
+          document.getElementById("imagePreview").src = product.image_url || "logo.png";
+          document.getElementById("productImage").required = false;
+          document.getElementById("cancelEdit").style.display = "block";
+          document.getElementById("saveProduct").textContent = "Ruaj ndryshimet";
+          document.getElementById("productError").textContent = "";
+          document.getElementById("productForm").scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      } catch (error) {
+        document.getElementById("productError").textContent = error.message;
+      }
+    }
+
+    document.getElementById("productImage").addEventListener("change", (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      document.getElementById("imagePreview").src = URL.createObjectURL(file);
+    });
+
+    document.getElementById("cancelEdit").addEventListener("click", resetProductForm);
+
+    document.getElementById("productForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const file = document.getElementById("productImage").files?.[0];
+      if (!editingName && !file) {
+        document.getElementById("productError").textContent = "Zgjidhni një fotografi.";
+        return;
+      }
+      const name = document.getElementById("productName").value.trim();
+      const price = Number(document.getElementById("productPrice").value);
+      const oldPriceValue = document.getElementById("oldPrice").value;
+      const stock = Number(document.getElementById("productStock").value);
+      const specs = document.getElementById("productSpecs").value.split(",").map((item) => item.trim()).filter(Boolean);
+      const saveButton = document.getElementById("saveProduct");
+      saveButton.disabled = true;
+      document.getElementById("productError").textContent = "";
+      try {
+        let imageUrl = editingImageUrl;
+        if (file) imageUrl = await window.OmiSupabase.uploadProductImage(file, editingImageUrl);
+        const product = {
+          name,
+          price,
+          old_price: oldPriceValue === "" ? null : Number(oldPriceValue),
+          description: document.getElementById("productDescription").value.trim(),
+          specifications: specs,
+          category: document.getElementById("productCategory").value.trim() || "Të tjera",
+          stock,
+          active: document.getElementById("productActive").checked,
+          image_url: imageUrl
+        };
+        if (editingName) await window.OmiSupabase.updateProduct(editingName, product);
+        else await window.OmiSupabase.createProduct(product);
+        resetProductForm();
+        await renderProducts();
+      } catch (error) {
+        document.getElementById("productError").textContent = error.message;
+      } finally {
+        saveButton.disabled = false;
+      }
+    });
+
+    function activateView(viewId) {
+      document.querySelectorAll(".tab").forEach((item) => item.classList.remove("active"));
+      document.querySelectorAll(".view").forEach((item) => item.classList.remove("active"));
+      const tab = document.querySelector(`.tab[data-view="${viewId}"]`);
+      const view = document.getElementById(viewId);
+      if (!tab || !view) return;
+      tab.classList.add("active");
+      view.classList.add("active");
+    }
+
+    document.querySelectorAll(".tab").forEach((tab) => tab.addEventListener("click", () => {
+      activateView(tab.dataset.view);
+      location.hash = tab.dataset.view === "productsView" ? "products" : "orders";
+    }));
+
     async function openPanel() {
       await window.OmiSupabase.verifyAdmin();
       login.style.display = "none";
       panel.style.display = "block";
       logout.style.display = "block";
-      await render();
+      if (location.hash === "#products") activateView("productsView");
+      await Promise.all([renderOrders(), renderProducts()]);
     }
 
     document.getElementById("loginBtn").addEventListener("click", async () => {
       const email = document.getElementById("adminEmail").value.trim();
       const password = document.getElementById("adminPassword").value;
-      try {
-        await window.OmiSupabase.signIn(email, password);
-        await openPanel();
-      } catch (error) {
-        loginError.textContent = error.message;
-      }
+      try { await window.OmiSupabase.signIn(email, password); await openPanel(); }
+      catch (error) { loginError.textContent = error.message; }
     });
-
-    document.getElementById("refresh").addEventListener("click", render);
-    logout.addEventListener("click", async () => {
-      await window.OmiSupabase.signOut();
-      location.reload();
-    });
+    document.getElementById("refreshOrders").addEventListener("click", renderOrders);
+    document.getElementById("refreshProducts").addEventListener("click", renderProducts);
+    logout.addEventListener("click", async () => { await window.OmiSupabase.signOut(); location.reload(); });
 
     if (window.OmiSupabase.hasSession()) {
-      openPanel().catch((error) => {
-        loginError.textContent = error.message;
-      });
+      openPanel().catch((error) => { loginError.textContent = error.message; });
     }
   </script>
 </body>

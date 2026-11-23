@@ -36,7 +36,11 @@ function send(res, status, body, type = "application/json; charset=utf-8") {
     "Cache-Control": "no-store",
     "X-Content-Type-Options": "nosniff"
   });
-  res.end(typeof body === "string" ? body : JSON.stringify(body));
+  if (Buffer.isBuffer(body)) {
+    res.end(body);
+  } else {
+    res.end(typeof body === "string" ? body : JSON.stringify(body));
+  }
 }
 
 function readJson(req) {

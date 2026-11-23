@@ -44,6 +44,32 @@ insert into public.store_products (name, price) values
 on conflict (name) do update
 set price = excluded.price, active = true;
 
+-- Extend the existing product table before policies reference its new columns.
+alter table public.store_products
+  add column if not exists id uuid default gen_random_uuid(),
+  add column if not exists old_price numeric(10, 2) check (old_price is null or old_price >= 0),
+  add column if not exists description text not null default '',
+  add column if not exists specifications jsonb not null default '[]'::jsonb,
+  add column if not exists category text not null default 'Të tjera',
+  add column if not exists stock integer not null default 0 check (stock >= 0),
+  add column if not exists image_url text,
+  add column if not exists created_at timestamptz not null default now();
+
+update public.store_products
+set description = 'Produkt i disponueshëm në OMI STORE.'
+where description = '';
+
+update public.store_products set stock = 20 where stock = 0;
+update public.store_products set image_url = 'sprejizi.jpg.jpg' where name = 'Sprej Izolues i Zi' and image_url is null;
+update public.store_products set image_url = 'sprejibardh.jpg.jpg' where name = 'Sprej Izolues i Bardhë' and image_url is null;
+update public.store_products set image_url = 'riparues.jpg.png' where name = 'Riparues Çarjesh' and image_url is null;
+update public.store_products set image_url = 'cakmak.jpg.jpg' where name = 'Çakmak me Orë' and image_url is null;
+update public.store_products set image_url = 'port.jpg.jpg' where name = 'Portë Sigurie' and image_url is null;
+update public.store_products set image_url = 'gokart.jpg.jpg' where name = 'Go Kart për Fëmijë' and image_url is null;
+update public.store_products set image_url = 'raft.jpg.jpg' where name = 'Raft për Banjo' and image_url is null;
+update public.store_products set image_url = 'solare.jpg.jpeg' where name = 'Drita Solare për Kopsht' and image_url is null;
+update public.store_products set image_url = 'perde.jpg.jpg' where name = 'Perde PVC për Verandë' and image_url is null;
+
 -- After creating the admin user in Authentication -> Users, copy its UUID
 -- and run in the SQL Editor:
 -- insert into public.store_admins (user_id)
@@ -83,6 +109,7 @@ create policy "Public can submit orders"
           where product.name = item ->> 'name'
             and product.price = (item ->> 'price')::numeric
             and product.active
+            and product.stock >= (item ->> 'quantity')::integer
         )
     )
   );
@@ -120,3 +147,71 @@ drop policy if exists "Admins can check their own access" on public.store_admins
 create policy "Admins can check their own access"
   on public.store_admins for select to authenticated
   using (user_id = (select auth.uid()));
+
+create unique index if not exists store_products_id_unique on public.store_products(id);
+
+grant insert, update, delete on public.store_products to authenticated;
+
+drop policy if exists "Public can view active products" on public.store_products;
+create policy "Public can view active products"
+  on public.store_products for select to anon, authenticated
+  using (active);
+
+drop policy if exists "Store admins can manage products" on public.store_products;
+create policy "Store admins can manage products"
+  on public.store_products for all to authenticated
+  using (
+    exists (
+      select 1 from public.store_admins
+      where store_admins.user_id = (select auth.uid())
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.store_admins
+      where store_admins.user_id = (select auth.uid())
+    )
+  );
+
+insert into storage.buckets (id, name, public)
+values ('product-images', 'product-images', true)
+on conflict (id) do update set public = true, name = excluded.name;
+
+drop policy if exists "Public can view product images" on storage.objects;
+create policy "Public can view product images"
+  on storage.objects for select to anon, authenticated
+  using (bucket_id = 'product-images');
+
+drop policy if exists "Store admins can upload product images" on storage.objects;
+create policy "Store admins can upload product images"
+  on storage.objects for insert to authenticated
+  with check (
+    bucket_id = 'product-images'
+    and exists (
+      select 1 from public.store_admins
+      where store_admins.user_id = (select auth.uid())
+    )
+  );
+
+drop policy if exists "Store admins can replace product images" on storage.objects;
+create policy "Store admins can replace product images"
+  on storage.objects for update to authenticated
+  using (
+    bucket_id = 'product-images'
+    and exists (
+      select 1 from public.store_admins
+      where store_admins.user_id = (select auth.uid())
+    )
+  )
+  with check (bucket_id = 'product-images');
+
+drop policy if exists "Store admins can delete product images" on storage.objects;
+create policy "Store admins can delete product images"
+  on storage.objects for delete to authenticated
+  using (
+    bucket_id = 'product-images'
+    and exists (
+      select 1 from public.store_admins
+      where store_admins.user_id = (select auth.uid())
+    )
+  );

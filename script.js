@@ -24,11 +24,13 @@ if (menuToggle && nav) {
 }
 
 const searchInput = document.getElementById("searchInput");
-const products = document.querySelectorAll(".product");
 const productCount = document.getElementById("productCount");
 const noResults = document.getElementById("noResults");
 
-if (searchInput && products.length && productCount && noResults) {
+function setupProductSearch() {
+    const products = document.querySelectorAll(".product");
+    if (!searchInput || !productCount || !noResults) return;
+
     const updateProducts = () => {
         const searchValue = searchInput.value.toLowerCase().trim();
         let visibleProducts = 0;
@@ -46,6 +48,60 @@ if (searchInput && products.length && productCount && noResults) {
 
     searchInput.addEventListener("input", updateProducts);
     updateProducts();
+}
+
+function escapeProductHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[character]);
+}
+
+async function loadProductsFromSupabase() {
+    const grid = document.getElementById("productGrid");
+    if (!grid) return;
+
+    try {
+        if (!window.OmiSupabase) throw new Error("Supabase nuk është i gatshëm.");
+        const products = await window.OmiSupabase.getActiveProducts();
+        grid.innerHTML = products.map((product) => {
+            const oldPrice = product.old_price ? Number(product.old_price) : null;
+            const price = Number(product.price);
+            const stock = Number(product.stock || 0);
+            const description = escapeProductHtml(product.description || product.category || "");
+            const specs = Array.isArray(product.specifications)
+                ? product.specifications.map((item) => escapeProductHtml(item)).join(" • ")
+                : escapeProductHtml(product.specifications || "");
+            const image = product.image_url || "logo.png";
+            const badge = oldPrice && oldPrice > price ? "Oferta" : (product.category || "I ri");
+
+            return `
+                <article class="product" data-name="${escapeProductHtml(product.name.toLowerCase())}" data-price="${price}" data-image="${escapeProductHtml(image)}" data-stock="${stock}">
+                    <div class="product-image">
+                        <img src="${escapeProductHtml(image)}" alt="${escapeProductHtml(product.name)}" />
+                        <span class="product-badge ${oldPrice && oldPrice > price ? "sale" : ""}">${escapeProductHtml(badge)}</span>
+                    </div>
+                    <div class="product-info">
+                        <h3>${escapeProductHtml(product.name)}</h3>
+                        <p>${description}${specs ? `<br><small>${specs}</small>` : ""}</p>
+                        <div class="price">${oldPrice && oldPrice > price ? `<del>${oldPrice.toFixed(2).replace(".00", "")}€</del> ` : ""}${price.toFixed(2).replace(".00", "")}€</div>
+                        <button class="btn-buy add-to-cart" type="button" data-product="${escapeProductHtml(product.name)}"${stock <= 0 ? " disabled" : ""}>${stock <= 0 ? "Nuk ka në stok" : "Shto në shportë"}</button>
+                    </div>
+                </article>`;
+        }).join("");
+
+        if (products.length === 0) {
+            grid.innerHTML = "";
+            noResults.style.display = "block";
+        }
+        setupProductSearch();
+    } catch (error) {
+        grid.innerHTML = `<div class="no-results" style="grid-column:1/-1;display:block"><h3>Nuk u ngarkuan produktet</h3><p>${escapeProductHtml(error.message)}</p></div>`;
+        if (productCount) productCount.textContent = "0";
+    }
 }
 
 const contactForm = document.getElementById("contactForm");
@@ -172,25 +228,30 @@ function renderCart() {
     `).join("");
 }
 
-document.querySelectorAll(".add-to-cart").forEach((button) => {
-    button.addEventListener("click", () => {
-        const card = button.closest(".product");
-        const name = button.dataset.product;
-        const price = Number(card.dataset.price);
-        const image = card.dataset.image;
-        const existing = cart.find((item) => item.name === name);
+document.addEventListener("click", (event) => {
+    const button = event.target.closest(".add-to-cart");
+    if (!button || button.disabled) return;
 
-        if (existing) {
-            existing.quantity += 1;
-        } else {
-            cart.push({ name, price, image, quantity: 1 });
-        }
+    const card = button.closest(".product");
+    const name = button.dataset.product;
+    const price = Number(card.dataset.price);
+    const image = card.dataset.image;
+    const stock = Number(card.dataset.stock || 0);
+    const existing = cart.find((item) => item.name === name);
 
-        saveCart();
-        button.textContent = "U shtua ✓";
-        setTimeout(() => { button.textContent = "Shto në shportë"; }, 900);
-        openCart();
-    });
+    if (existing && existing.quantity >= stock) return;
+    if (!existing && stock <= 0) return;
+
+    if (existing) {
+        existing.quantity += 1;
+    } else {
+        cart.push({ name, price, image, quantity: 1, stock });
+    }
+
+    saveCart();
+    button.textContent = "U shtua ✓";
+    setTimeout(() => { button.textContent = "Shto në shportë"; }, 900);
+    openCart();
 });
 
 cartItems?.addEventListener("click", (event) => {
@@ -200,7 +261,9 @@ cartItems?.addEventListener("click", (event) => {
     const index = Number(button.dataset.index);
     const action = button.dataset.cartAction;
 
-    if (action === "increase") cart[index].quantity += 1;
+    if (action === "increase" && (!cart[index].stock || cart[index].quantity < cart[index].stock)) {
+        cart[index].quantity += 1;
+    }
     if (action === "decrease") cart[index].quantity -= 1;
     if (action === "remove") cart.splice(index, 1);
 
@@ -224,3 +287,4 @@ checkoutBtn?.addEventListener("click", (event) => {
 });
 
 renderCart();
+loadProductsFromSupabase();

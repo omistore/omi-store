@@ -156,6 +156,114 @@
     }
   }
 
+  async function getActiveProducts() {
+    const { url, anonKey } = getConfig();
+    const response = await fetch(`${url}/rest/v1/store_products?select=*&active=eq.true&order=created_at.desc`, {
+      headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` }
+    });
+    return readResponse(response);
+  }
+
+  async function getAdminProducts() {
+    const { url, anonKey } = getConfig();
+    const session = await getValidSession();
+    const response = await fetch(`${url}/rest/v1/store_products?select=*&order=created_at.desc`, {
+      headers: { apikey: anonKey, Authorization: `Bearer ${session.access_token}` }
+    });
+    return readResponse(response);
+  }
+
+  async function uploadProductImage(file, oldImageUrl) {
+    const { url, anonKey } = getConfig();
+    const session = await getValidSession();
+    const extension = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+    const path = `${crypto.randomUUID()}.${extension}`;
+    const response = await fetch(`${url}/storage/v1/object/product-images/${encodeURIComponent(path)}`, {
+      method: "POST",
+      headers: {
+        apikey: anonKey,
+        Authorization: `Bearer ${session.access_token}`,
+        "Content-Type": file.type || "application/octet-stream",
+        "x-upsert": "false"
+      },
+      body: file
+    });
+    await readResponse(response);
+
+    if (oldImageUrl?.includes("/product-images/")) {
+      const oldPath = oldImageUrl.split("/product-images/")[1];
+      if (oldPath) {
+        await fetch(`${url}/storage/v1/object/product-images/${oldPath}`, {
+          method: "DELETE",
+          headers: { apikey: anonKey, Authorization: `Bearer ${session.access_token}` }
+        }).catch(() => {});
+      }
+    }
+
+    return `${url}/storage/v1/object/public/product-images/${encodeURIComponent(path)}`;
+  }
+
+  async function createProduct(product) {
+    const { url, anonKey } = getConfig();
+    const session = await getValidSession();
+    const response = await fetch(`${url}/rest/v1/store_products`, {
+      method: "POST",
+      headers: {
+        apikey: anonKey,
+        Authorization: `Bearer ${session.access_token}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation"
+      },
+      body: JSON.stringify(product)
+    });
+    const rows = await readResponse(response);
+    if (!Array.isArray(rows) || rows.length === 0) throw new Error("Produkti nuk u shtua.");
+    return rows[0];
+  }
+
+  async function updateProduct(name, product) {
+    const { url, anonKey } = getConfig();
+    const session = await getValidSession();
+    const params = new URLSearchParams({ name: `eq.${name}`, select: "name" });
+    const response = await fetch(`${url}/rest/v1/store_products?${params}`, {
+      method: "PATCH",
+      headers: {
+        apikey: anonKey,
+        Authorization: `Bearer ${session.access_token}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation"
+      },
+      body: JSON.stringify(product)
+    });
+    const rows = await readResponse(response);
+    if (!Array.isArray(rows) || rows.length === 0) throw new Error("Produkti nuk u përditësua.");
+  }
+
+  async function deleteProduct(product) {
+    const { url, anonKey } = getConfig();
+    const session = await getValidSession();
+    const params = new URLSearchParams({ name: `eq.${product.name}` });
+    const response = await fetch(`${url}/rest/v1/store_products?${params}`, {
+      method: "DELETE",
+      headers: {
+        apikey: anonKey,
+        Authorization: `Bearer ${session.access_token}`,
+        Prefer: "return=minimal"
+      }
+    });
+    await readResponse(response);
+
+    if (product.image_url?.includes("/product-images/")) {
+      const path = product.image_url.split("/product-images/")[1];
+      if (path) {
+        await fetch(`${url}/storage/v1/object/product-images/${path}`, {
+          method: "DELETE",
+          headers: { apikey: anonKey, Authorization: `Bearer ${session.access_token}` }
+        }).catch(() => {});
+      }
+    }
+  }
+
   window.OmiSupabase = {
     hasSession: () => Boolean(readSession()?.access_token),
     signIn,
@@ -163,6 +271,12 @@
     insertOrder,
     getOrders,
     verifyAdmin,
-    updateOrderStatus
+    updateOrderStatus,
+    getActiveProducts,
+    getAdminProducts,
+    uploadProductImage,
+    createProduct,
+    updateProduct,
+    deleteProduct
   };
 })();

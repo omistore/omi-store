@@ -77,10 +77,10 @@
           <span>🔎</span>
           <input type="text" id="searchInput" placeholder="Kërko produktin..." />
         </div>
-        <div class="product-count">Produkte: <span id="productCount">9</span></div>
+        <div class="product-count">Produkte: <span id="productCount">0</span></div>
       </div>
 
-      <div class="grid">
+      <div class="grid" id="productGrid">
         <article class="product" data-name="sprej izolues i zi" data-price="10" data-image="sprejizi.jpg.jpg">
           <div class="product-image">
             <img src="sprejizi.jpg.jpg" alt="Sprej izolues i zi" />
@@ -271,6 +271,8 @@
     <div class="copyright">© 2026 OMI STORE. Të gjitha të drejtat të rezervuara.</div>
   </footer>
 
+  <script src="./supabase-config.js"></script>
+  <script src="./supabase-client.js"></script>
   <script src="./script.js"></script>
 </body>
 </html>
