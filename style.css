@@ -186,11 +186,15 @@ textarea {
 
 .logo img {
 
-    width: 50px;
+    width: 58px;
 
     height: 50px;
 
     object-fit: contain;
+
+    display: block;
+
+    flex: 0 0 auto;
 
 }
 
@@ -1572,13 +1576,15 @@ textarea {
 
 .messenger:hover {
 
-    transform: scale(1.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 
 }
 
 
 
 .messenger img {
+
+    display: block;
 
     width: 100%;
 
@@ -1591,6 +1597,8 @@ textarea {
 
 
     object-fit: cover;
+
+    image-rendering: auto;
 
 }
 
