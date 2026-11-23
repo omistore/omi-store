@@ -380,7 +380,7 @@ textarea {
     content: "";
     position: absolute;
     inset: 0;
-    background-image: url("./logo-symbol.png?v=2");
+    background-image: url("./logo-symbol.png?v=3");
     background-repeat: no-repeat;
     background-position: center center;
     background-size: auto 82%;
