@@ -186,13 +186,13 @@ textarea {
 
 .logo img {
 
-    width: 58px;
+    width: 68px;
 
-    height: 56px;
+    height: 64px;
 
     object-fit: contain;
 
-    padding-top: 6px;
+    padding-top: 8px;
 
     display: block;
 
@@ -2080,9 +2080,13 @@ footer {
 
 
     .header {
-
         padding: 0 20px;
+    }
 
+    .logo img {
+        width: 58px;
+        height: 56px;
+        padding-top: 6px;
     }
 
 
