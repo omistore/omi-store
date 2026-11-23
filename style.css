@@ -996,7 +996,13 @@ textarea {
     background: #f5f5f5;
 
     transition: transform 0.5s;
+    cursor: zoom-in;
 
+}
+
+.product-image img:focus-visible {
+    outline: 3px solid var(--purple);
+    outline-offset: -3px;
 }
 
 

@@ -82,7 +82,7 @@ async function loadProductsFromSupabase() {
             return `
                 <article class="product" data-name="${escapeProductHtml(product.name.toLowerCase())}" data-price="${price}" data-old-price="${oldPrice || ""}" data-image="${escapeProductHtml(image)}" data-images="${escapeProductHtml(JSON.stringify(imageUrls))}" data-stock="${stock}" data-description="${escapeProductHtml(description)}" data-specifications="${escapeProductHtml(specs)}">
                     <div class="product-image">
-                        <img src="${escapeProductHtml(image)}" alt="${escapeProductHtml(product.name)}" />
+                        <img src="${escapeProductHtml(image)}" alt="${escapeProductHtml(product.name)}" role="button" tabindex="0" />
                         <span class="product-badge ${oldPrice && oldPrice > price ? "sale" : ""}">${escapeProductHtml(badge)}</span>
                     </div>
                     <div class="product-info">
@@ -185,12 +185,8 @@ function formatProductPrice(value) {
     return `${Number(value).toFixed(2).replace(/\.00$/, "")}€`;
 }
 
-document.addEventListener("click", (event) => {
-    const button = event.target.closest(".product-details-button");
-    if (!button || !productDialog) return;
-
-    const product = button.closest(".product");
-    if (!product) return;
+function openProductDialog(product) {
+    if (!product || !productDialog) return;
 
     const price = Number(product.dataset.price);
     const oldPrice = Number(product.dataset.oldPrice || 0);
@@ -222,6 +218,20 @@ document.addEventListener("click", (event) => {
     productDialogSpecifications.textContent = specifications;
     productDialogSpecifications.hidden = !specifications;
     productDialog.showModal();
+}
+
+document.addEventListener("click", (event) => {
+    const trigger = event.target.closest(".product-details-button, .product-image img");
+    if (trigger) openProductDialog(trigger.closest(".product"));
+});
+
+document.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    const image = event.target.closest(".product-image img[role='button']");
+    if (!image) return;
+
+    event.preventDefault();
+    openProductDialog(image.closest(".product"));
 });
 
 productDialogThumbnails?.addEventListener("click", (event) => {
