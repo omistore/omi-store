@@ -9,6 +9,29 @@
     return config;
   }
 
+  function getProductImages(product) {
+    if (Array.isArray(product?.image_urls)) {
+      return product.image_urls.filter((image) => typeof image === "string" && image);
+    }
+
+    const imageUrl = product?.image_url;
+    if (typeof imageUrl !== "string" || !imageUrl) return [];
+    try {
+      const images = JSON.parse(imageUrl);
+      if (Array.isArray(images)) return images.filter((image) => typeof image === "string" && image);
+    } catch {
+      return [imageUrl];
+    }
+    return [imageUrl];
+  }
+
+  function serializeProductImages(images) {
+    const urls = images.filter((image) => typeof image === "string" && image);
+    if (urls.length > 5) throw new Error("Një produkt mund të ketë maksimumi 5 fotografi.");
+    // Keep the existing single-URL format; encode galleries in the same text column.
+    return urls.length > 1 ? JSON.stringify(urls) : (urls[0] || null);
+  }
+
   async function readResponse(response) {
     const text = await response.text();
     let data = null;
@@ -173,7 +196,7 @@
     return readResponse(response);
   }
 
-  async function uploadProductImage(file, oldImageUrl) {
+  async function uploadProductImage(file) {
     const { url, anonKey } = getConfig();
     const session = await getValidSession();
     const extension = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
@@ -190,17 +213,46 @@
     });
     await readResponse(response);
 
-    if (oldImageUrl?.includes("/product-images/")) {
-      const oldPath = oldImageUrl.split("/product-images/")[1];
-      if (oldPath) {
-        await fetch(`${url}/storage/v1/object/product-images/${oldPath}`, {
-          method: "DELETE",
-          headers: { apikey: anonKey, Authorization: `Bearer ${session.access_token}` }
-        }).catch(() => {});
-      }
+    return `${url}/storage/v1/object/public/product-images/${encodeURIComponent(path)}`;
+  }
+
+  async function uploadProductImages(files) {
+    if (!Array.isArray(files) || files.length < 1 || files.length > 5) {
+      throw new Error("Zgjidhni nga 1 deri në 5 fotografi.");
     }
 
-    return `${url}/storage/v1/object/public/product-images/${encodeURIComponent(path)}`;
+    const uploadedImages = [];
+    try {
+      for (const file of files) {
+        uploadedImages.push(await uploadProductImage(file));
+      }
+    } catch (error) {
+      if (uploadedImages.length) {
+        try {
+          await deleteProductImages(uploadedImages);
+        } catch (cleanupError) {
+          throw new Error(`${error.message} Fotot e ngarkuara pjesërisht nuk u pastruan: ${cleanupError.message}`);
+        }
+      }
+      throw error;
+    }
+    return uploadedImages;
+  }
+
+  async function deleteProductImages(images) {
+    const { url, anonKey } = getConfig();
+    const session = await getValidSession();
+    for (const imageUrl of images) {
+      const marker = "/product-images/";
+      const path = imageUrl.includes(marker) ? imageUrl.split(marker)[1].split("?")[0] : "";
+      if (!path) continue;
+
+      const response = await fetch(`${url}/storage/v1/object/product-images/${path}`, {
+        method: "DELETE",
+        headers: { apikey: anonKey, Authorization: `Bearer ${session.access_token}` }
+      });
+      await readResponse(response);
+    }
   }
 
   async function createProduct(product) {
@@ -253,15 +305,7 @@
     });
     await readResponse(response);
 
-    if (product.image_url?.includes("/product-images/")) {
-      const path = product.image_url.split("/product-images/")[1];
-      if (path) {
-        await fetch(`${url}/storage/v1/object/product-images/${path}`, {
-          method: "DELETE",
-          headers: { apikey: anonKey, Authorization: `Bearer ${session.access_token}` }
-        }).catch(() => {});
-      }
-    }
+    await deleteProductImages(getProductImages(product));
   }
 
   window.OmiSupabase = {
@@ -274,7 +318,11 @@
     updateOrderStatus,
     getActiveProducts,
     getAdminProducts,
+    getProductImages,
+    serializeProductImages,
     uploadProductImage,
+    uploadProductImages,
+    deleteProductImages,
     createProduct,
     updateProduct,
     deleteProduct

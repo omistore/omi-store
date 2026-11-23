@@ -75,11 +75,12 @@ async function loadProductsFromSupabase() {
             const specs = Array.isArray(product.specifications)
                 ? product.specifications.join(" • ")
                 : (product.specifications || "");
-            const image = product.image_url || "logo.png";
+            const imageUrls = window.OmiSupabase.getProductImages(product);
+            const image = imageUrls[0] || "logo.png";
             const badge = oldPrice && oldPrice > price ? "Oferta" : (product.category || "I ri");
 
             return `
-                <article class="product" data-name="${escapeProductHtml(product.name.toLowerCase())}" data-price="${price}" data-old-price="${oldPrice || ""}" data-image="${escapeProductHtml(image)}" data-stock="${stock}" data-description="${escapeProductHtml(description)}" data-specifications="${escapeProductHtml(specs)}">
+                <article class="product" data-name="${escapeProductHtml(product.name.toLowerCase())}" data-price="${price}" data-old-price="${oldPrice || ""}" data-image="${escapeProductHtml(image)}" data-images="${escapeProductHtml(JSON.stringify(imageUrls))}" data-stock="${stock}" data-description="${escapeProductHtml(description)}" data-specifications="${escapeProductHtml(specs)}">
                     <div class="product-image">
                         <img src="${escapeProductHtml(image)}" alt="${escapeProductHtml(product.name)}" />
                         <span class="product-badge ${oldPrice && oldPrice > price ? "sale" : ""}">${escapeProductHtml(badge)}</span>
@@ -168,6 +169,17 @@ const productDialogTitle = document.getElementById("productDialogTitle");
 const productDialogPrice = document.getElementById("productDialogPrice");
 const productDialogDescription = document.getElementById("productDialogDescription");
 const productDialogSpecifications = document.getElementById("productDialogSpecifications");
+const productDialogThumbnails = document.getElementById("productDialogThumbnails");
+let productDialogImages = [];
+
+function showProductDialogImage(index) {
+    const image = productDialogImages[index];
+    if (!image) return;
+    productDialogImage.src = image;
+    productDialogThumbnails.querySelectorAll("[data-image-index]").forEach((button) => {
+        button.classList.toggle("active", Number(button.dataset.imageIndex) === index);
+    });
+}
 
 function formatProductPrice(value) {
     return `${Number(value).toFixed(2).replace(/\.00$/, "")}€`;
@@ -185,9 +197,23 @@ document.addEventListener("click", (event) => {
     const name = product.querySelector("h3")?.textContent.trim() || "";
     const description = product.dataset.description || "Përshkrimi nuk është shtuar ende.";
     const specifications = product.dataset.specifications || "";
+    try {
+        productDialogImages = JSON.parse(product.dataset.images || "[]");
+    } catch {
+        productDialogImages = [];
+    }
+    if (!Array.isArray(productDialogImages) || productDialogImages.length === 0) {
+        productDialogImages = product.dataset.image ? [product.dataset.image] : ["logo.png"];
+    }
 
-    productDialogImage.src = product.dataset.image || "logo.png";
+    productDialogThumbnails.innerHTML = productDialogImages.length > 1
+        ? productDialogImages.map((image, index) => `
+            <button class="product-dialog-thumbnail${index === 0 ? " active" : ""}" type="button" data-image-index="${index}" aria-label="Foto ${index + 1} e ${escapeProductHtml(name)}">
+                <img src="${escapeProductHtml(image)}" alt="" />
+            </button>`).join("")
+        : "";
     productDialogImage.alt = name;
+    showProductDialogImage(0);
     productDialogTitle.textContent = name;
     productDialogPrice.textContent = oldPrice > price
         ? `${formatProductPrice(oldPrice)}  ${formatProductPrice(price)}`
@@ -196,6 +222,11 @@ document.addEventListener("click", (event) => {
     productDialogSpecifications.textContent = specifications;
     productDialogSpecifications.hidden = !specifications;
     productDialog.showModal();
+});
+
+productDialogThumbnails?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-image-index]");
+    if (button) showProductDialogImage(Number(button.dataset.imageIndex));
 });
 
 productDialog?.querySelector(".product-dialog-close")?.addEventListener("click", () => {

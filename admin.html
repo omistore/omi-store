@@ -43,7 +43,10 @@
     .field textarea { min-height:84px; resize:vertical; }
     .check { display:flex; align-items:center; gap:9px; min-height:42px; }
     .check input { width:18px; height:18px; }
-    .preview { width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:10px; background:#f1edf4; margin-bottom:12px; }
+    .field-hint { color:#777; font-size:12px; }
+    .image-preview-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; }
+    .image-preview-grid img { width:100%; aspect-ratio:1; object-fit:cover; border-radius:9px; background:#f1edf4; }
+    .image-preview-empty { grid-column:1/-1; color:#777; font-size:12px; }
     .save { width:100%; border:none; border-radius:9px; background:var(--purple); color:white; padding:13px; font-weight:900; cursor:pointer; }
     .cancel { width:100%; border:1px solid var(--border); border-radius:9px; background:white; color:#555; padding:11px; font-weight:800; cursor:pointer; margin-top:8px; }
     .product-list { display:grid; gap:10px; }
@@ -107,15 +110,16 @@
         <div class="product-layout">
           <form class="card" id="productForm">
             <h2 id="formTitle" style="margin-bottom:14px">Shto produkt të ri</h2>
-            <img class="preview" id="imagePreview" src="logo.png" alt="Parapamje e produktit" />
             <div class="form-grid">
               <div class="field full">
                 <label for="productName">Emri i produktit *</label>
                 <input id="productName" required maxlength="120" />
               </div>
               <div class="field full">
-                <label for="productImage">Fotografia nga galeria/telefoni/kompjuteri *</label>
-                <input id="productImage" type="file" accept="image/*" />
+                <label for="productImage">Fotot e produktit (deri në 5) *</label>
+                <input id="productImage" type="file" accept="image/*" multiple required />
+                <small class="field-hint">Kur editon produktin, fotot e reja zëvendësojnë ato ekzistuese.</small>
+                <div class="image-preview-grid" id="imagePreview"></div>
               </div>
               <div class="field">
                 <label for="productPrice">Çmimi aktual (€) *</label>
@@ -162,19 +166,36 @@
   </main>
 
   <script src="./supabase-config.js"></script>
-  <script src="./supabase-client.js"></script>
+  <script src="./supabase-client.js?v=2"></script>
   <script>
     const login = document.getElementById("login");
     const panel = document.getElementById("panel");
     const logout = document.getElementById("logout");
     const loginError = document.getElementById("loginError");
     let editingName = null;
-    let editingImageUrl = null;
+    let editingImageUrls = [];
+    let selectedImageFiles = [];
+    let previewObjectUrls = [];
 
     function escapeHtml(value) {
       return String(value ?? "").replace(/[&<>"']/g, (character) => ({
         "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
       })[character]);
+    }
+    function renderImagePreviews(urls = [], files = []) {
+      previewObjectUrls.forEach((url) => URL.revokeObjectURL(url));
+      previewObjectUrls = [];
+      const preview = document.getElementById("imagePreview");
+      const sources = files.length
+        ? files.map((file) => {
+          const url = URL.createObjectURL(file);
+          previewObjectUrls.push(url);
+          return url;
+        })
+        : urls;
+      preview.innerHTML = sources.length
+        ? sources.map((url, index) => `<img src="${escapeHtml(url)}" alt="Foto ${index + 1}" />`).join("")
+        : '<div class="image-preview-empty">Nuk është zgjedhur asnjë foto.</div>';
     }
     function formatDate(value) { return new Date(value).toLocaleString("sq-AL"); }
     function formatPrice(value) { return `${Number(value || 0).toFixed(2).replace(".00", "")}€`; }
@@ -216,11 +237,12 @@
 
     function resetProductForm() {
       editingName = null;
-      editingImageUrl = null;
+      editingImageUrls = [];
+      selectedImageFiles = [];
+      renderImagePreviews();
       document.getElementById("productForm").reset();
       document.getElementById("productActive").checked = true;
       document.getElementById("productStock").value = "0";
-      document.getElementById("imagePreview").src = "logo.png";
       document.getElementById("formTitle").textContent = "Shto produkt të ri";
       document.getElementById("productImage").required = true;
       document.getElementById("cancelEdit").style.display = "none";
@@ -235,10 +257,11 @@
         if (!products.length) { list.innerHTML = '<div class="empty">Nuk ka produkte.</div>'; return; }
         list.innerHTML = products.map((product) => {
           const specs = Array.isArray(product.specifications) ? product.specifications.join(", ") : (product.specifications || "");
+          const images = window.OmiSupabase.getProductImages(product);
           return `
             <div class="product-row">
-              <img src="${escapeHtml(product.image_url || "logo.png")}" alt="${escapeHtml(product.name)}" />
-              <div><h3>${escapeHtml(product.name)}</h3><p>${escapeHtml(formatPrice(product.price))} · Stok: ${escapeHtml(product.stock)} · ${escapeHtml(product.category)}</p><p>${escapeHtml(specs)}</p><span class="status ${product.active ? "on" : "off"}">${product.active ? "Aktiv" : "Joaktiv"}</span></div>
+              <img src="${escapeHtml(images[0] || "logo.png")}" alt="${escapeHtml(product.name)}" />
+              <div><h3>${escapeHtml(product.name)}</h3><p>${escapeHtml(formatPrice(product.price))} · Stok: ${escapeHtml(product.stock)} · ${escapeHtml(product.category)} · ${images.length} foto</p><p>${escapeHtml(specs)}</p><span class="status ${product.active ? "on" : "off"}">${product.active ? "Aktiv" : "Joaktiv"}</span></div>
               <div class="actions">
                 <button class="action" type="button" data-action="edit" data-name="${escapeHtml(product.name)}">Edito</button>
                 <button class="action" type="button" data-action="toggle" data-name="${escapeHtml(product.name)}">${product.active ? "Çaktivizo" : "Aktivizo"}</button>
@@ -270,7 +293,9 @@
           await renderProducts();
         } else if (action === "edit") {
           editingName = name;
-          editingImageUrl = product.image_url;
+          editingImageUrls = window.OmiSupabase.getProductImages(product);
+          selectedImageFiles = [];
+          renderImagePreviews(editingImageUrls);
           document.getElementById("formTitle").textContent = "Edito produktin";
           document.getElementById("productName").value = product.name || "";
           document.getElementById("productPrice").value = product.price || "";
@@ -280,7 +305,6 @@
           document.getElementById("productCategory").value = product.category || "";
           document.getElementById("productStock").value = product.stock || 0;
           document.getElementById("productActive").checked = Boolean(product.active);
-          document.getElementById("imagePreview").src = product.image_url || "logo.png";
           document.getElementById("productImage").required = false;
           document.getElementById("cancelEdit").style.display = "block";
           document.getElementById("saveProduct").textContent = "Ruaj ndryshimet";
@@ -293,18 +317,30 @@
     }
 
     document.getElementById("productImage").addEventListener("change", (event) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-      document.getElementById("imagePreview").src = URL.createObjectURL(file);
+      const input = event.currentTarget;
+      selectedImageFiles = Array.from(input.files || []);
+      const error = document.getElementById("productError");
+      if (selectedImageFiles.length > 5) {
+        selectedImageFiles = [];
+        input.value = "";
+        renderImagePreviews(editingImageUrls);
+        error.textContent = "Mund të zgjidhni maksimumi 5 fotografi.";
+        return;
+      }
+      error.textContent = "";
+      renderImagePreviews(editingImageUrls, selectedImageFiles);
     });
 
     document.getElementById("cancelEdit").addEventListener("click", resetProductForm);
 
     document.getElementById("productForm").addEventListener("submit", async (event) => {
       event.preventDefault();
-      const file = document.getElementById("productImage").files?.[0];
-      if (!editingName && !file) {
-        document.getElementById("productError").textContent = "Zgjidhni një fotografi.";
+      if (!editingName && selectedImageFiles.length === 0) {
+        document.getElementById("productError").textContent = "Zgjidhni të paktën një fotografi.";
+        return;
+      }
+      if (selectedImageFiles.length > 5) {
+        document.getElementById("productError").textContent = "Mund të ngarkoni maksimumi 5 fotografi.";
         return;
       }
       const name = document.getElementById("productName").value.trim();
@@ -315,9 +351,15 @@
       const saveButton = document.getElementById("saveProduct");
       saveButton.disabled = true;
       document.getElementById("productError").textContent = "";
+      const oldImageUrls = editingImageUrls;
+      let uploadedImageUrls = [];
+      let productSaved = false;
       try {
-        let imageUrl = editingImageUrl;
-        if (file) imageUrl = await window.OmiSupabase.uploadProductImage(file, editingImageUrl);
+        let imageUrls = editingImageUrls;
+        if (selectedImageFiles.length) {
+          uploadedImageUrls = await window.OmiSupabase.uploadProductImages(selectedImageFiles);
+          imageUrls = uploadedImageUrls;
+        }
         const product = {
           name,
           price,
@@ -327,13 +369,28 @@
           category: document.getElementById("productCategory").value.trim() || "Të tjera",
           stock,
           active: document.getElementById("productActive").checked,
-          image_url: imageUrl
+          image_url: window.OmiSupabase.serializeProductImages(imageUrls)
         };
         if (editingName) await window.OmiSupabase.updateProduct(editingName, product);
         else await window.OmiSupabase.createProduct(product);
+        productSaved = true;
         resetProductForm();
         await renderProducts();
+        if (uploadedImageUrls.length && oldImageUrls.length) {
+          try {
+            await window.OmiSupabase.deleteProductImages(oldImageUrls);
+          } catch (error) {
+            document.getElementById("productError").textContent = `Produkti u ruajt, por fotot e vjetra nuk u fshinë: ${error.message}`;
+          }
+        }
       } catch (error) {
+        if (!productSaved && uploadedImageUrls.length) {
+          try {
+            await window.OmiSupabase.deleteProductImages(uploadedImageUrls);
+          } catch (cleanupError) {
+            error = new Error(`${error.message} Fotot e reja nuk u pastruan: ${cleanupError.message}`);
+          }
+        }
         document.getElementById("productError").textContent = error.message;
       } finally {
         saveButton.disabled = false;

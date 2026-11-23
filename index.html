@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OMI STORE | Shitje Online</title>
   <meta name="description" content="OMI STORE ofron produkte praktike, elektronike dhe pajisje për shtëpi me porosi të shpejtë online." />
-  <link rel="stylesheet" href="./style.css?v=16" />
+  <link rel="stylesheet" href="./style.css?v=18" />
 </head>
 <body>
   <header class="header">
@@ -207,7 +207,10 @@
       <dialog class="product-dialog" id="productDialog" aria-labelledby="productDialogTitle">
         <button class="product-dialog-close" type="button" aria-label="Mbyll detajet">×</button>
         <div class="product-dialog-content">
-          <img class="product-dialog-image" id="productDialogImage" alt="" />
+          <div class="product-dialog-gallery">
+            <img class="product-dialog-image" id="productDialogImage" alt="" />
+            <div class="product-dialog-thumbnails" id="productDialogThumbnails"></div>
+          </div>
           <div class="product-dialog-info">
             <h2 id="productDialogTitle"></h2>
             <div class="product-dialog-price" id="productDialogPrice"></div>
@@ -284,7 +287,7 @@
   </footer>
 
   <script src="./supabase-config.js"></script>
-  <script src="./supabase-client.js"></script>
-  <script src="./script.js?v=2"></script>
+  <script src="./supabase-client.js?v=2"></script>
+  <script src="./script.js?v=4"></script>
 </body>
 </html>
