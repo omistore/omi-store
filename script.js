@@ -26,28 +26,107 @@ if (menuToggle && nav) {
 const searchInput = document.getElementById("searchInput");
 const productCount = document.getElementById("productCount");
 const noResults = document.getElementById("noResults");
+const categoryFilters = document.getElementById("categoryFilters");
+const storeCategories = ["Shtëpi", "Për fëmijë", "Mjete pune", "Dekore", "Teknologji"];
+let activeCategory = "";
 
-function setupProductSearch() {
-    const products = document.querySelectorAll(".product");
+function normalizeCategoryText(value) {
+    return String(value ?? "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
+}
+
+function getProductCategory(name, category) {
+    const categoryText = String(category ?? "").trim();
+    const normalizedCategory = normalizeCategoryText(categoryText);
+    const knownCategory = storeCategories.find(
+        (item) => normalizeCategoryText(item) === normalizedCategory
+    );
+    if (knownCategory) return knownCategory;
+
+    if (!categoryText || normalizedCategory === "te tjera") {
+        const productName = normalizeCategoryText(name);
+        if (productName.includes("go kart") || productName.includes("femije")) {
+            return "Për fëmijë";
+        }
+        if (productName.includes("sprej izolues") || productName.includes("riparues carjesh")) {
+            return "Mjete pune";
+        }
+        if (productName.includes("cakmak")) return "Teknologji";
+        if (
+            productName.includes("porte sigurie") ||
+            productName.includes("raft per banjo") ||
+            productName.includes("drita solare") ||
+            productName.includes("perde pvc")
+        ) {
+            return "Shtëpi";
+        }
+    }
+
+    return categoryText || "Të tjera";
+}
+
+function updateProductResults() {
     if (!searchInput || !productCount || !noResults) return;
 
-    const updateProducts = () => {
-        const searchValue = searchInput.value.toLowerCase().trim();
-        let visibleProducts = 0;
+    const searchValue = searchInput.value.toLowerCase().trim();
+    let visibleProducts = 0;
 
-        products.forEach((product) => {
-            const productName = product.dataset.name?.toLowerCase() || "";
-            const isVisible = productName.includes(searchValue);
-            product.style.display = isVisible ? "" : "none";
-            if (isVisible) visibleProducts++;
+    document.querySelectorAll(".product").forEach((product) => {
+        const productName = product.dataset.name?.toLowerCase() || "";
+        const matchesSearch = productName.includes(searchValue);
+        const matchesCategory = !activeCategory || product.dataset.category === activeCategory;
+        const isVisible = matchesSearch && matchesCategory;
+        product.style.display = isVisible ? "" : "none";
+        if (isVisible) visibleProducts++;
+    });
+
+    productCount.textContent = visibleProducts;
+    noResults.style.display = visibleProducts === 0 ? "block" : "none";
+}
+
+function renderCategoryFilters() {
+    if (!categoryFilters) return;
+
+    const categories = [...storeCategories];
+    document.querySelectorAll(".product").forEach((product) => {
+        const category = product.dataset.category?.trim();
+        if (category && !categories.includes(category)) categories.push(category);
+    });
+
+    if (activeCategory && !categories.includes(activeCategory)) activeCategory = "";
+    categoryFilters.innerHTML = [
+        `<button class="category-filter${activeCategory ? "" : " active"}" type="button" data-category-filter="" aria-pressed="${!activeCategory}">Të gjitha</button>`,
+        ...categories.map((category) => (
+            `<button class="category-filter${activeCategory === category ? " active" : ""}" type="button" data-category-filter="${escapeProductHtml(category)}" aria-pressed="${activeCategory === category}">${escapeProductHtml(category)}</button>`
+        ))
+    ].join("");
+}
+
+function setupProductSearch() {
+    if (!searchInput || !productCount || !noResults) return;
+
+    if (!searchInput.dataset.productSearchBound) {
+        searchInput.addEventListener("input", updateProductResults);
+        searchInput.dataset.productSearchBound = "true";
+    }
+    if (categoryFilters && !categoryFilters.dataset.categoryFiltersBound) {
+        categoryFilters.addEventListener("click", (event) => {
+            const button = event.target instanceof Element
+                ? event.target.closest("[data-category-filter]")
+                : null;
+            if (!button) return;
+            activeCategory = button.dataset.categoryFilter || "";
+            renderCategoryFilters();
+            updateProductResults();
         });
+        categoryFilters.dataset.categoryFiltersBound = "true";
+    }
 
-        productCount.textContent = visibleProducts;
-        noResults.style.display = visibleProducts === 0 ? "block" : "none";
-    };
-
-    searchInput.addEventListener("input", updateProducts);
-    updateProducts();
+    renderCategoryFilters();
+    updateProductResults();
 }
 
 function escapeProductHtml(value) {
@@ -77,10 +156,11 @@ async function loadProductsFromSupabase() {
                 : (product.specifications || "");
             const imageUrls = window.OmiSupabase.getProductImages(product);
             const image = imageUrls[0] || "logo.png";
-            const badge = oldPrice && oldPrice > price ? "Oferta" : (product.category || "I ri");
+            const category = getProductCategory(product.name, product.category);
+            const badge = oldPrice && oldPrice > price ? "Oferta" : category;
 
             return `
-                <article class="product" data-name="${escapeProductHtml(product.name.toLowerCase())}" data-price="${price}" data-old-price="${oldPrice || ""}" data-image="${escapeProductHtml(image)}" data-images="${escapeProductHtml(JSON.stringify(imageUrls))}" data-stock="${stock}" data-description="${escapeProductHtml(description)}" data-specifications="${escapeProductHtml(specs)}">
+                <article class="product" data-name="${escapeProductHtml(product.name.toLowerCase())}" data-category="${escapeProductHtml(category)}" data-price="${price}" data-old-price="${oldPrice || ""}" data-image="${escapeProductHtml(image)}" data-images="${escapeProductHtml(JSON.stringify(imageUrls))}" data-stock="${stock}" data-description="${escapeProductHtml(description)}" data-specifications="${escapeProductHtml(specs)}">
                     <div class="product-image">
                         <img src="${escapeProductHtml(image)}" alt="${escapeProductHtml(product.name)}" role="button" tabindex="0" />
                         <span class="product-badge ${oldPrice && oldPrice > price ? "sale" : ""}">${escapeProductHtml(badge)}</span>
@@ -431,4 +511,5 @@ checkoutBtn?.addEventListener("click", (event) => {
 });
 
 renderCart();
+setupProductSearch();
 loadProductsFromSupabase();

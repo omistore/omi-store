@@ -856,8 +856,37 @@ textarea {
 
 }
 
+.category-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    max-width: 1080px;
+    margin: -8px auto 28px;
+}
 
+.category-filter {
+    padding: 9px 16px;
+    border: 1px solid rgba(106, 13, 173, 0.2);
+    border-radius: 999px;
+    background: white;
+    color: var(--purple);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s;
+}
 
+.category-filter:hover,
+.category-filter.active {
+    border-color: var(--purple);
+    background: var(--purple);
+    color: white;
+}
+
+.category-filter:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
 
 
 /* PRODUCT GRID */
@@ -2471,6 +2500,10 @@ footer {
 
     }
 
+    .category-filters {
+        justify-content: center;
+        margin-top: -6px;
+    }
 
 
 }

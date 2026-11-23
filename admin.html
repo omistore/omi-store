@@ -139,7 +139,14 @@
               </div>
               <div class="field">
                 <label for="productCategory">Kategoria</label>
-                <input id="productCategory" maxlength="80" placeholder="P.sh. Shtëpia" />
+                <input id="productCategory" list="productCategoryOptions" maxlength="80" placeholder="Zgjidh ose shkruaj kategori" />
+                <datalist id="productCategoryOptions">
+                  <option value="Shtëpi"></option>
+                  <option value="Për fëmijë"></option>
+                  <option value="Mjete pune"></option>
+                  <option value="Dekore"></option>
+                  <option value="Teknologji"></option>
+                </datalist>
               </div>
               <div class="field">
                 <label for="productStock">Sasia në stok</label>
