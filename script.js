@@ -71,22 +71,22 @@ async function loadProductsFromSupabase() {
             const oldPrice = product.old_price ? Number(product.old_price) : null;
             const price = Number(product.price);
             const stock = Number(product.stock || 0);
-            const description = escapeProductHtml(product.description || product.category || "");
+            const description = product.description || product.category || "";
             const specs = Array.isArray(product.specifications)
-                ? product.specifications.map((item) => escapeProductHtml(item)).join(" • ")
-                : escapeProductHtml(product.specifications || "");
+                ? product.specifications.join(" • ")
+                : (product.specifications || "");
             const image = product.image_url || "logo.png";
             const badge = oldPrice && oldPrice > price ? "Oferta" : (product.category || "I ri");
 
             return `
-                <article class="product" data-name="${escapeProductHtml(product.name.toLowerCase())}" data-price="${price}" data-image="${escapeProductHtml(image)}" data-stock="${stock}">
+                <article class="product" data-name="${escapeProductHtml(product.name.toLowerCase())}" data-price="${price}" data-old-price="${oldPrice || ""}" data-image="${escapeProductHtml(image)}" data-stock="${stock}" data-description="${escapeProductHtml(description)}" data-specifications="${escapeProductHtml(specs)}">
                     <div class="product-image">
                         <img src="${escapeProductHtml(image)}" alt="${escapeProductHtml(product.name)}" />
                         <span class="product-badge ${oldPrice && oldPrice > price ? "sale" : ""}">${escapeProductHtml(badge)}</span>
                     </div>
                     <div class="product-info">
                         <h3>${escapeProductHtml(product.name)}</h3>
-                        <p>${description}${specs ? `<br><small>${specs}</small>` : ""}</p>
+                        <button class="product-details-button" type="button">Shiko detajet</button>
                         <div class="price">${oldPrice && oldPrice > price ? `<del>${oldPrice.toFixed(2).replace(".00", "")}€</del> ` : ""}${price.toFixed(2).replace(".00", "")}€</div>
                         <button class="btn-buy add-to-cart" type="button" data-product="${escapeProductHtml(product.name)}"${stock <= 0 ? " disabled" : ""}>${stock <= 0 ? "Nuk ka në stok" : "Shto në shportë"}</button>
                     </div>
@@ -162,6 +162,45 @@ const drawerCount = document.getElementById("drawerCount");
 const cartTotal = document.getElementById("cartTotal");
 const clearCart = document.getElementById("clearCart");
 const checkoutBtn = document.getElementById("checkoutBtn");
+const productDialog = document.getElementById("productDialog");
+const productDialogImage = document.getElementById("productDialogImage");
+const productDialogTitle = document.getElementById("productDialogTitle");
+const productDialogPrice = document.getElementById("productDialogPrice");
+const productDialogDescription = document.getElementById("productDialogDescription");
+const productDialogSpecifications = document.getElementById("productDialogSpecifications");
+
+function formatProductPrice(value) {
+    return `${Number(value).toFixed(2).replace(/\.00$/, "")}€`;
+}
+
+document.addEventListener("click", (event) => {
+    const button = event.target.closest(".product-details-button");
+    if (!button || !productDialog) return;
+
+    const product = button.closest(".product");
+    if (!product) return;
+
+    const price = Number(product.dataset.price);
+    const oldPrice = Number(product.dataset.oldPrice || 0);
+    const name = product.querySelector("h3")?.textContent.trim() || "";
+    const description = product.dataset.description || "Përshkrimi nuk është shtuar ende.";
+    const specifications = product.dataset.specifications || "";
+
+    productDialogImage.src = product.dataset.image || "logo.png";
+    productDialogImage.alt = name;
+    productDialogTitle.textContent = name;
+    productDialogPrice.textContent = oldPrice > price
+        ? `${formatProductPrice(oldPrice)}  ${formatProductPrice(price)}`
+        : formatProductPrice(price);
+    productDialogDescription.textContent = description;
+    productDialogSpecifications.textContent = specifications;
+    productDialogSpecifications.hidden = !specifications;
+    productDialog.showModal();
+});
+
+productDialog?.querySelector(".product-dialog-close")?.addEventListener("click", () => {
+    productDialog.close();
+});
 
 let cart = JSON.parse(localStorage.getItem(cartStorageKey) || "[]");
 

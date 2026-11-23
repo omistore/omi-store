@@ -1066,6 +1066,157 @@ textarea {
 
 }
 
+.product-details-button {
+
+    margin-top: 6px;
+
+    padding: 0;
+
+    border: 0;
+
+    background: transparent;
+
+    color: var(--purple);
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    text-align: left;
+
+    cursor: pointer;
+
+}
+
+.product-details-button:hover {
+
+    text-decoration: underline;
+
+}
+
+.product-dialog {
+
+    width: min(720px, calc(100vw - 24px));
+
+    max-height: calc(100vh - 24px);
+
+    margin: auto;
+
+    padding: 24px;
+
+    overflow: auto;
+
+    border: 0;
+
+    border-radius: 16px;
+
+    background: white;
+
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+
+}
+
+.product-dialog::backdrop {
+
+    background: rgba(25, 0, 40, 0.68);
+
+}
+
+.product-dialog-close {
+
+    position: absolute;
+
+    top: 8px;
+
+    right: 12px;
+
+    width: 36px;
+
+    height: 36px;
+
+    border: 0;
+
+    border-radius: 50%;
+
+    background: #f3eef7;
+
+    color: var(--purple-dark);
+
+    font-size: 26px;
+
+    line-height: 1;
+
+    cursor: pointer;
+
+}
+
+.product-dialog-content {
+
+    display: grid;
+
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+
+    align-items: start;
+
+    gap: 24px;
+
+}
+
+.product-dialog-image {
+
+    width: 100%;
+
+    aspect-ratio: 1;
+
+    border-radius: 12px;
+
+    background: #f5f5f5;
+
+    object-fit: contain;
+
+}
+
+.product-dialog-info {
+
+    padding: 20px 24px 0 0;
+
+}
+
+.product-dialog-info h2 {
+
+    margin-bottom: 8px;
+
+    font-size: 24px;
+
+}
+
+.product-dialog-price {
+
+    color: var(--purple);
+
+    font-size: 22px;
+
+    font-weight: 800;
+
+}
+
+.product-dialog-description,
+.product-dialog-specifications {
+
+    margin-top: 14px;
+
+    line-height: 1.6;
+
+    white-space: pre-wrap;
+
+}
+
+.product-dialog-specifications {
+
+    color: var(--muted);
+
+}
+
 
 
 .product h3 {
@@ -2492,6 +2643,48 @@ footer {
     .product-info p {
 
         font-size: 11px;
+
+    }
+
+    .product-details-button {
+
+        font-size: 10px;
+
+    }
+
+    .product-dialog {
+
+        max-height: calc(100vh - 16px);
+
+        padding: 16px;
+
+    }
+
+    .product-dialog-content {
+
+        grid-template-columns: 1fr;
+
+        gap: 12px;
+
+    }
+
+    .product-dialog-image {
+
+        max-height: 220px;
+
+        aspect-ratio: 16 / 10;
+
+    }
+
+    .product-dialog-info {
+
+        padding: 0 12px 0 0;
+
+    }
+
+    .product-dialog-info h2 {
+
+        font-size: 20px;
 
     }
 
