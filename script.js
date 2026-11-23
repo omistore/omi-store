@@ -165,20 +165,46 @@ const clearCart = document.getElementById("clearCart");
 const checkoutBtn = document.getElementById("checkoutBtn");
 const productDialog = document.getElementById("productDialog");
 const productDialogImage = document.getElementById("productDialogImage");
+const productDialogImageStage = document.getElementById("productDialogImageStage");
 const productDialogTitle = document.getElementById("productDialogTitle");
 const productDialogPrice = document.getElementById("productDialogPrice");
 const productDialogDescription = document.getElementById("productDialogDescription");
 const productDialogSpecifications = document.getElementById("productDialogSpecifications");
 const productDialogThumbnails = document.getElementById("productDialogThumbnails");
 let productDialogImages = [];
+let productZoom = 1;
+let productZoomOffset = { x: 0, y: 0 };
+let productImageDrag = null;
 
 function showProductDialogImage(index) {
     const image = productDialogImages[index];
     if (!image) return;
     productDialogImage.src = image;
+    setProductZoom(1);
     productDialogThumbnails.querySelectorAll("[data-image-index]").forEach((button) => {
         button.classList.toggle("active", Number(button.dataset.imageIndex) === index);
     });
+}
+
+function setProductZoom(zoom) {
+    productZoom = Math.min(3, Math.max(1, zoom));
+    if (productZoom === 1) productZoomOffset = { x: 0, y: 0 };
+    productDialogImage.style.transform = `translate3d(${productZoomOffset.x}px, ${productZoomOffset.y}px, 0) scale(${productZoom})`;
+    productDialogImage.classList.toggle("zoomed", productZoom > 1);
+    productDialog?.querySelector("[data-zoom='out']")?.toggleAttribute("disabled", productZoom <= 1);
+    productDialog?.querySelector("[data-zoom='in']")?.toggleAttribute("disabled", productZoom >= 3);
+    const resetButton = productDialog?.querySelector("[data-zoom='reset']");
+    if (resetButton) resetButton.textContent = `${productZoom}×`;
+}
+
+function clampProductZoomOffset(x, y) {
+    const bounds = productDialogImageStage.getBoundingClientRect();
+    const maxX = bounds.width * (productZoom - 1) / 2;
+    const maxY = bounds.height * (productZoom - 1) / 2;
+    return {
+        x: Math.max(-maxX, Math.min(maxX, x)),
+        y: Math.max(-maxY, Math.min(maxY, y))
+    };
 }
 
 function formatProductPrice(value) {
@@ -237,6 +263,44 @@ document.addEventListener("keydown", (event) => {
 productDialogThumbnails?.addEventListener("click", (event) => {
     const button = event.target.closest("[data-image-index]");
     if (button) showProductDialogImage(Number(button.dataset.imageIndex));
+});
+
+productDialog?.querySelector(".product-dialog-zoom-controls")?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-zoom]");
+    if (!button) return;
+
+    if (button.dataset.zoom === "in") setProductZoom(productZoom + 0.5);
+    if (button.dataset.zoom === "out") setProductZoom(productZoom - 0.5);
+    if (button.dataset.zoom === "reset") setProductZoom(1);
+});
+
+productDialogImage?.addEventListener("pointerdown", (event) => {
+    if (productZoom <= 1) return;
+    productImageDrag = {
+        pointerId: event.pointerId,
+        x: event.clientX,
+        y: event.clientY,
+        offsetX: productZoomOffset.x,
+        offsetY: productZoomOffset.y
+    };
+    productDialogImage.setPointerCapture(event.pointerId);
+});
+
+productDialogImage?.addEventListener("pointermove", (event) => {
+    if (!productImageDrag || productImageDrag.pointerId !== event.pointerId) return;
+    productZoomOffset = clampProductZoomOffset(
+        productImageDrag.offsetX + event.clientX - productImageDrag.x,
+        productImageDrag.offsetY + event.clientY - productImageDrag.y
+    );
+    setProductZoom(productZoom);
+});
+
+productDialogImage?.addEventListener("pointerup", () => {
+    productImageDrag = null;
+});
+
+productDialogImage?.addEventListener("pointercancel", () => {
+    productImageDrag = null;
 });
 
 productDialog?.querySelector(".product-dialog-close")?.addEventListener("click", () => {
