@@ -6089,3 +6089,57 @@ footer {
     }
 }
 
+.hero-composition {
+    display: block;
+    position: absolute;
+    right: -7%;
+    bottom: -4%;
+    z-index: 3;
+    width: 114%;
+    height: 108%;
+    object-fit: contain;
+    object-position: center bottom;
+    mix-blend-mode: screen;
+    filter: drop-shadow(0 16px 18px rgba(20, 0, 31, .22));
+}
+
+.btn-buy,
+#contactForm button,
+.checkout-btn,
+.category-filter.active,
+.category-filter:hover {
+    background: #6a1b9a;
+}
+
+.btn-buy:hover,
+#contactForm button:hover,
+.checkout-btn:hover {
+    background: #55117f;
+}
+
+.hero-btn {
+    background: #ffd43b;
+}
+
+.hero-btn:hover {
+    background: #ffdf67;
+}
+
+@media (min-width: 600px) and (max-width: 900px) {
+    .hero-composition {
+        right: -9%;
+        bottom: -8%;
+        width: 116%;
+        height: 112%;
+    }
+}
+
+@media (max-width: 599px) {
+    .hero-composition {
+        right: -8%;
+        bottom: -9%;
+        width: 116%;
+        height: 116%;
+    }
+}
+
