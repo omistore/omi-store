@@ -139,6 +139,24 @@ function escapeProductHtml(value) {
     })[character]);
 }
 
+function resolveCartImageUrl(value) {
+    const image = String(value ?? "").trim().replace(/^\.\/(https?:\/\/)/i, "$1");
+    if (!image) return "./logo.png";
+    if (/^(https?:|data:|blob:)/i.test(image)) return image;
+    if (image.startsWith("/")) return image;
+    return `./${image.replace(/^\.?\//, "")}`;
+}
+
+function bindCartImageFallbacks(container) {
+    container?.querySelectorAll("img[data-cart-image]").forEach((image) => {
+        image.addEventListener("error", () => {
+            if (image.dataset.fallbackApplied) return;
+            image.dataset.fallbackApplied = "true";
+            image.src = "./logo.png";
+        }, { once: true });
+    });
+}
+
 async function loadProductsFromSupabase() {
     const grid = document.getElementById("productGrid");
     if (!grid) return;
@@ -437,11 +455,11 @@ function renderCart() {
 
     cartItems.innerHTML = cart.map((item, index) => `
         <div class="cart-item">
-            <img src="${item.image}" alt="${item.name}" />
+            <img data-cart-image src="${escapeProductHtml(resolveCartImageUrl(item.image))}" alt="${escapeProductHtml(item.name)}" />
             <div>
-                <h3>${item.name}</h3>
+                <h3>${escapeProductHtml(item.name)}</h3>
                 <div class="cart-item-price">${item.price}€</div>
-                <div class="qty-controls" aria-label="Sasia për ${item.name}">
+                <div class="qty-controls" aria-label="Sasia për ${escapeProductHtml(item.name)}">
                     <button type="button" data-cart-action="decrease" data-index="${index}" aria-label="Ul sasinë">−</button>
                     <strong>${item.quantity}</strong>
                     <button type="button" data-cart-action="increase" data-index="${index}" aria-label="Rrit sasinë">+</button>
@@ -450,6 +468,7 @@ function renderCart() {
             <button class="cart-remove" type="button" data-cart-action="remove" data-index="${index}" aria-label="Hiq produktin">×</button>
         </div>
     `).join("");
+    bindCartImageFallbacks(cartItems);
 }
 
 document.addEventListener("click", (event) => {
@@ -459,7 +478,7 @@ document.addEventListener("click", (event) => {
     const card = button.closest(".product");
     const name = button.dataset.product;
     const price = Number(card.dataset.price);
-    const image = card.dataset.image;
+    const image = resolveCartImageUrl(card.dataset.image);
     const stock = Number(card.dataset.stock || 0);
     const existing = cart.find((item) => item.name === name);
 
