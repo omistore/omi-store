@@ -6108,6 +6108,12 @@ footer {
     color: #6a1b9a;
 }
 
+.cart-count {
+    border-color: #fff;
+    background: #6a1b9a;
+    color: #fff;
+}
+
 .category-filter.active,
 .category-filter:hover {
     border-color: #6a1b9a;
