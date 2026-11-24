@@ -5,243 +5,496 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>OMI STORE | Paneli i Administrimit</title>
   <style>
-    :root { --purple:#6a0dad; --dark:#260044; --yellow:#ffd700; --background:#f6f4fa; --border:#e8e3ed; }
-    * { box-sizing:border-box; margin:0; padding:0; }
-    body { min-height:100vh; background:var(--background); font-family:"Segoe UI",Arial,sans-serif; color:#242424; }
-    .topbar { height:72px; display:flex; align-items:center; justify-content:space-between; padding:0 5%; background:var(--dark); color:white; }
-    .brand { font-size:21px; font-weight:900; } .brand span { color:var(--yellow); }
-    .logout { border:1px solid rgba(255,255,255,.25); border-radius:8px; background:transparent; color:white; padding:9px 12px; cursor:pointer; }
-    .main { max-width:1200px; margin:auto; padding:34px 20px 60px; }
-    .login { max-width:460px; margin:60px auto; padding:28px; border-radius:16px; background:white; box-shadow:0 15px 45px rgba(38,0,68,.1); }
-    .login h1 { margin-bottom:16px; }
-    .login input { width:100%; margin:8px 0 14px; padding:13px; border:1px solid #ddd; border-radius:9px; font-size:16px; }
-    .login button, .refresh { width:100%; padding:13px; border:none; border-radius:9px; background:var(--purple); color:white; font-weight:800; cursor:pointer; }
-    .panel { display:none; }
-    .tabs { display:flex; gap:8px; margin-bottom:18px; overflow-x:auto; }
-    .tab { border:1px solid var(--border); background:white; border-radius:9px; padding:11px 16px; font-weight:800; cursor:pointer; white-space:nowrap; }
-    .tab.active { border-color:var(--purple); background:var(--purple); color:white; }
-    .view { display:none; } .view.active { display:block; }
-    .panel-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; }
-    .refresh { width:auto; padding:10px 15px; }
-    .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px; }
-    .stat { padding:16px; border:1px solid #eee; border-radius:12px; background:white; }
-    .stat span { display:block; color:#777; font-size:12px; } .stat strong { display:block; margin-top:4px; font-size:24px; color:var(--purple); }
-    .table-wrap { overflow-x:auto; border:1px solid #eee; border-radius:12px; background:white; }
-    table { width:100%; border-collapse:collapse; min-width:820px; }
-    th, td { padding:13px; border-bottom:1px solid #eee; text-align:left; vertical-align:top; font-size:13px; }
-    th { background:#faf8fc; color:#666; } td small { display:block; margin-top:3px; color:#777; }
-    select { padding:8px; border:1px solid #ddd; border-radius:7px; background:white; }
-    .empty { padding:30px; text-align:center; color:#777; }
-    .error { margin-top:10px; color:#b3261e; font-size:13px; }
-    .product-layout { display:grid; grid-template-columns:minmax(280px,380px) 1fr; gap:18px; align-items:start; }
-    .card { border:1px solid var(--border); border-radius:14px; background:white; padding:18px; }
-    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-    .field { display:flex; flex-direction:column; gap:6px; }
-    .field.full { grid-column:1/-1; }
-    .field label { font-size:12px; font-weight:800; color:#62556c; }
-    .field input, .field textarea, .field select { width:100%; border:1px solid #ddd; border-radius:9px; padding:11px; background:white; font-size:16px; }
-    .field textarea { min-height:84px; resize:vertical; }
-    .check { display:flex; align-items:center; gap:9px; min-height:42px; }
-    .check input { width:18px; height:18px; }
-    .field-hint { color:#777; font-size:12px; }
-    .image-preview-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; }
-    .image-preview-grid img { width:100%; aspect-ratio:1; object-fit:cover; border-radius:9px; background:#f1edf4; }
-    .image-preview-empty { grid-column:1/-1; color:#777; font-size:12px; }
-    .save { width:100%; border:none; border-radius:9px; background:var(--purple); color:white; padding:13px; font-weight:900; cursor:pointer; }
-    .cancel { width:100%; border:1px solid var(--border); border-radius:9px; background:white; color:#555; padding:11px; font-weight:800; cursor:pointer; margin-top:8px; }
-    .product-list { display:grid; gap:10px; }
-    .product-row { display:grid; grid-template-columns:74px minmax(150px,1fr) auto; gap:12px; align-items:center; border:1px solid var(--border); border-radius:12px; padding:10px; background:white; }
-    .product-row img { width:74px; height:74px; object-fit:cover; border-radius:9px; background:#eee; }
-    .product-row h3 { font-size:15px; margin-bottom:4px; }
-    .product-row p { color:#777; font-size:12px; }
-    .actions { display:flex; gap:7px; flex-wrap:wrap; justify-content:flex-end; }
-    .action { border:1px solid var(--border); background:white; border-radius:8px; padding:8px 10px; cursor:pointer; font-weight:800; }
-    .action.danger { color:#b3261e; }
-    .status { display:inline-block; border-radius:999px; padding:4px 8px; font-size:11px; font-weight:900; margin-top:5px; }
-    .status.on { background:#dff4e7; color:#19733a; } .status.off { background:#f1f1f1; color:#777; }
-    @media(max-width:850px) {
-      .main { padding:18px 12px 40px; } .topbar { height:64px; padding:0 14px; }
-      .brand { font-size:17px; } .stats { grid-template-columns:1fr 1fr; }
-      .product-layout { grid-template-columns:1fr; }
-      .product-row { grid-template-columns:62px 1fr; }
-      .product-row img { width:62px; height:62px; } .actions { grid-column:1/-1; justify-content:flex-start; }
+    :root {
+      --purple: #6a1b9a;
+      --purple-dark: #3a0754;
+      --purple-soft: #f3e9f8;
+      --yellow: #ffd43b;
+      --background: #f5f3f7;
+      --surface: #fff;
+      --text: #241c27;
+      --muted: #746b78;
+      --border: #e4dfe7;
+      --danger: #b42318;
+      --success: #157347;
+      --warning: #9a6700;
+      --shadow: 0 12px 32px rgba(50, 20, 64, .08);
     }
-    @media(max-width:520px) {
-      .form-grid { grid-template-columns:1fr; } .field.full { grid-column:auto; }
-      .stats { gap:8px; } .stat { padding:12px; } .stat strong { font-size:20px; }
-      .panel-head { align-items:flex-start; } .panel-head h1 { font-size:22px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { min-height: 100vh; background: var(--background); color: var(--text); font: 14px/1.45 "Segoe UI", Arial, sans-serif; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: wait; opacity: .6; }
+    .topbar { height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 max(20px, calc((100vw - 1320px)/2)); background: var(--purple-dark); color: #fff; }
+    .brand { font-size: 21px; font-weight: 900; letter-spacing: -.02em; }
+    .brand span { color: var(--yellow); }
+    .topbar-actions { display: flex; gap: 8px; }
+    .outline-btn, .secondary-btn { border: 1px solid rgba(255,255,255,.25); border-radius: 7px; background: transparent; color: #fff; padding: 9px 12px; font-weight: 700; }
+    .main { max-width: 1320px; margin: auto; padding: 28px 20px 70px; }
+    .login { max-width: 440px; margin: 70px auto; padding: 30px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow); }
+    .login h1 { margin-bottom: 6px; font-size: 28px; }
+    .login p { margin-bottom: 20px; color: var(--muted); }
+    .login input { width: 100%; margin-bottom: 12px; padding: 13px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; outline: 0; }
+    .login input:focus, .control:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(106,27,154,.08); }
+    .primary-btn { border: 0; border-radius: 7px; background: var(--purple); color: #fff; padding: 11px 15px; font-weight: 800; }
+    .login .primary-btn { width: 100%; padding: 13px; }
+    .panel { display: none; }
+    .admin-nav { display: flex; gap: 7px; margin-bottom: 20px; padding-bottom: 12px; overflow-x: auto; border-bottom: 1px solid var(--border); }
+    .tab { flex: 0 0 auto; border: 0; border-radius: 7px; background: transparent; color: var(--muted); padding: 10px 14px; font-weight: 800; }
+    .tab.active { background: var(--purple); color: #fff; }
+    .view { display: none; }
+    .view.active { display: block; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .panel-head h1 { font-size: 26px; line-height: 1.2; }
+    .panel-head p { margin-top: 3px; color: var(--muted); font-size: 13px; }
+    .actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .secondary-btn { border-color: var(--border); background: #fff; color: var(--text); }
+    .danger-btn { border: 1px solid #f0c7c2; border-radius: 7px; background: #fff; color: var(--danger); padding: 9px 12px; font-weight: 800; }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .stat { padding: 17px; border: 1px solid var(--border); border-radius: 10px; background: #fff; box-shadow: 0 4px 16px rgba(40,20,50,.03); }
+    .stat span { display: block; color: var(--muted); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+    .stat strong { display: block; margin-top: 6px; color: var(--purple-dark); font-size: 25px; line-height: 1.15; }
+    .stat small { display: block; margin-top: 5px; color: var(--muted); }
+    .dashboard-grid { display: grid; grid-template-columns: 1.35fr .65fr; gap: 16px; }
+    .card { border: 1px solid var(--border); border-radius: 10px; background: #fff; box-shadow: 0 4px 18px rgba(40,20,50,.035); }
+    .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--border); }
+    .card-head h2 { font-size: 16px; }
+    .card-head small { color: var(--muted); }
+    .card-body { padding: 16px 18px; }
+    .recent-list, .low-stock-list, .audit-list { display: grid; gap: 9px; }
+    .compact-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid #eee9f0; }
+    .compact-row:last-child { border-bottom: 0; }
+    .compact-row strong { display: block; font-size: 13px; }
+    .compact-row small { display: block; margin-top: 2px; color: var(--muted); }
+    .toolbar { display: grid; grid-template-columns: minmax(220px, 1fr) 170px 170px auto; gap: 9px; margin-bottom: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 9px; background: #fff; }
+    .toolbar.products-toolbar { grid-template-columns: minmax(220px, 1fr) 180px 170px 170px auto; }
+    .control { width: 100%; min-height: 40px; border: 1px solid var(--border); border-radius: 7px; background: #fff; color: var(--text); padding: 9px 11px; outline: 0; }
+    .bulk-bar { display: none; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; padding: 11px 13px; border: 1px solid #d9c5e4; border-radius: 8px; background: var(--purple-soft); color: var(--purple-dark); }
+    .bulk-bar.show { display: flex; }
+    .bulk-bar strong { font-size: 13px; }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; background: #fff; }
+    table { width: 100%; min-width: 880px; border-collapse: collapse; }
+    th, td { padding: 13px 14px; border-bottom: 1px solid #eee9f0; text-align: left; vertical-align: middle; font-size: 13px; }
+    th { background: #faf8fb; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .035em; }
+    tr:last-child td { border-bottom: 0; }
+    td small { display: block; margin-top: 3px; color: var(--muted); }
+    .status { display: inline-flex; align-items: center; border-radius: 999px; background: #eeeaf0; color: #625b65; padding: 4px 9px; font-size: 11px; font-weight: 800; }
+    .status.I-ri { background: #e8f1ff; color: #2457a6; }
+    .status.Konfirmuar { background: #fff2cc; color: #8a5c00; }
+    .status.Në-transport { background: #efe5f7; color: #6a1b9a; }
+    .status.Dorëzuar { background: #dcf4e7; color: #157347; }
+    .status.Anuluar { background: #fbe4e2; color: #a52a21; }
+    .product-layout { display: grid; grid-template-columns: minmax(290px, 380px) 1fr; gap: 16px; align-items: start; }
+    .product-form { padding: 18px; }
+    .product-form h2 { margin-bottom: 15px; font-size: 18px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field.full { grid-column: 1/-1; }
+    .field label { color: #62596a; font-size: 12px; font-weight: 800; }
+    .field input, .field textarea, .field select { width: 100%; border: 1px solid var(--border); border-radius: 7px; background: #fff; padding: 10px; outline: 0; }
+    .field textarea { min-height: 82px; resize: vertical; }
+    .field-hint { color: var(--muted); font-size: 11px; }
+    .check { flex-direction: row; align-items: center; min-height: 40px; }
+    .check input { width: 18px; height: 18px; }
+    .image-preview-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+    .image-preview-grid img { width: 100%; aspect-ratio: 1; border-radius: 7px; background: #f2eef4; object-fit: cover; }
+    .image-preview-empty { grid-column: 1/-1; color: var(--muted); font-size: 11px; }
+    .full-btn { width: 100%; margin-top: 2px; }
+    .product-list { display: grid; gap: 9px; }
+    .product-row { display: grid; grid-template-columns: 22px 72px minmax(150px,1fr) auto; gap: 12px; align-items: center; padding: 11px; border: 1px solid var(--border); border-radius: 9px; background: #fff; }
+    .product-row img { width: 72px; height: 72px; border-radius: 7px; background: #f3f0f4; object-fit: cover; }
+    .product-row h3 { margin-bottom: 3px; font-size: 14px; }
+    .product-row p { color: var(--muted); font-size: 12px; }
+    .product-row-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+    .mini-btn { border: 1px solid var(--border); border-radius: 6px; background: #fff; color: var(--text); padding: 7px 9px; font-size: 12px; font-weight: 800; }
+    .mini-btn.danger { border-color: #f0c7c2; color: var(--danger); }
+    .stock-low { color: var(--danger) !important; font-weight: 800; }
+    .empty { padding: 34px 16px; color: var(--muted); text-align: center; }
+    .error { min-height: 18px; margin-top: 8px; color: var(--danger); font-size: 12px; }
+    dialog { width: min(760px, calc(100vw - 24px)); max-height: calc(100vh - 24px); margin: auto; border: 0; border-radius: 12px; background: #fff; box-shadow: 0 28px 80px rgba(25,0,35,.25); }
+    dialog::backdrop { background: rgba(24,4,32,.62); }
+    .dialog-head { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; padding: 17px 20px; border-bottom: 1px solid var(--border); background: #fff; }
+    .dialog-head h2 { font-size: 19px; }
+    .icon-btn { width: 34px; height: 34px; border: 0; border-radius: 50%; background: #f1edf3; font-size: 21px; }
+    .dialog-body { padding: 20px; }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+    .detail-box { padding: 14px; border: 1px solid var(--border); border-radius: 8px; }
+    .detail-box h3 { margin-bottom: 8px; font-size: 13px; }
+    .detail-box p { margin: 4px 0; color: var(--muted); font-size: 13px; }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .toast { position: fixed; right: 20px; bottom: 20px; z-index: 100; max-width: 360px; padding: 12px 15px; border-radius: 8px; background: var(--purple-dark); color: #fff; box-shadow: var(--shadow); transform: translateY(100px); opacity: 0; transition: .25s; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    @media (max-width: 980px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .dashboard-grid, .product-layout { grid-template-columns: 1fr; }
+      .toolbar, .toolbar.products-toolbar { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 680px) {
+      .main { padding: 18px 12px 50px; }
+      .topbar { height: 64px; padding: 0 14px; }
+      .brand { font-size: 17px; }
+      .stats { gap: 8px; }
+      .stat { padding: 13px; }
+      .stat strong { font-size: 21px; }
+      .panel-head { align-items: flex-start; }
+      .panel-head h1 { font-size: 22px; }
+      .panel-head .actions { justify-content: flex-end; }
+      .toolbar, .toolbar.products-toolbar { grid-template-columns: 1fr; }
+      .form-grid, .detail-grid { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+      .product-row { grid-template-columns: 20px 58px 1fr; }
+      .product-row img { width: 58px; height: 58px; }
+      .product-row-actions { grid-column: 1/-1; justify-content: flex-start; }
+      .bulk-bar { align-items: flex-start; flex-direction: column; }
+      .dialog-actions { flex-wrap: wrap; }
     }
   </style>
 </head>
 <body>
   <header class="topbar">
     <div class="brand">OMI <span>STORE</span> | Admin</div>
-    <button class="logout" id="logout" type="button" style="display:none">Dil</button>
+    <div class="topbar-actions">
+      <button class="outline-btn" id="openStore" type="button" style="display:none">Shiko dyqanin</button>
+      <button class="outline-btn" id="logout" type="button" style="display:none">Dil</button>
+    </div>
   </header>
+
   <main class="main">
     <section class="login" id="login">
       <h1>Hyrja në panel</h1>
+      <p>Menaxho produktet, porositë dhe aktivitetin e dyqanit.</p>
       <input id="adminEmail" type="email" autocomplete="username" placeholder="Email i administratorit" />
       <input id="adminPassword" type="password" autocomplete="current-password" placeholder="Fjalëkalimi" />
-      <button id="loginBtn" type="button">Hyr</button>
+      <button class="primary-btn" id="loginBtn" type="button">Hyr në administrim</button>
       <div class="error" id="loginError"></div>
     </section>
 
     <section class="panel" id="panel">
-      <nav class="tabs" aria-label="Seksionet e panelit">
-        <button class="tab active" type="button" data-view="ordersView">Porositë</button>
+      <nav class="admin-nav" aria-label="Seksionet e panelit">
+        <button class="tab active" type="button" data-view="dashboardView">Përmbledhje</button>
+        <button class="tab" type="button" data-view="ordersView">Porositë</button>
         <button class="tab" type="button" data-view="productsView">Produktet</button>
+        <button class="tab" type="button" data-view="auditView">Historiku</button>
       </nav>
 
-      <section class="view active" id="ordersView">
+      <section class="view active" id="dashboardView">
         <div class="panel-head">
-          <h1>Porositë</h1>
-          <button class="refresh" id="refreshOrders" type="button">↻ Rifresko</button>
+          <div><h1>Përmbledhje</h1><p>Gjendja aktuale e dyqanit dhe porosive.</p></div>
+          <button class="primary-btn" id="refreshDashboard" type="button">Rifresko të dhënat</button>
         </div>
-        <div class="stats" id="stats"></div>
+        <div class="stats" id="dashboardStats"></div>
+        <div class="dashboard-grid">
+          <article class="card">
+            <div class="card-head"><h2>Porositë e fundit</h2><small>10 më të fundit</small></div>
+            <div class="card-body recent-list" id="recentOrders"></div>
+          </article>
+          <article class="card">
+            <div class="card-head"><h2>Stok i ulët</h2><small>5 ose më pak</small></div>
+            <div class="card-body low-stock-list" id="lowStockProducts"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" id="ordersView">
+        <div class="panel-head">
+          <div><h1>Porositë</h1><p>Kërko, filtro, ndrysho statusin dhe printo porositë.</p></div>
+          <div class="actions">
+            <button class="secondary-btn" id="exportOrders" type="button">Eksporto CSV</button>
+            <button class="primary-btn" id="refreshOrders" type="button">Rifresko</button>
+          </div>
+        </div>
+        <div class="toolbar">
+          <input class="control" id="orderSearch" type="search" placeholder="Numri, emri, telefoni ose qyteti..." />
+          <select class="control" id="orderStatusFilter">
+            <option value="">Të gjitha statuset</option>
+            <option>I ri</option><option>Konfirmuar</option><option>Në transport</option><option>Dorëzuar</option><option>Anuluar</option>
+          </select>
+          <input class="control" id="orderDateFilter" type="date" />
+          <select class="control" id="orderSort">
+            <option value="newest">Më të rejat</option>
+            <option value="oldest">Më të vjetrat</option>
+            <option value="highest">Totali më i lartë</option>
+          </select>
+        </div>
+        <div class="stats" id="orderStats"></div>
         <div class="table-wrap" id="ordersTable"></div>
       </section>
 
       <section class="view" id="productsView">
         <div class="panel-head">
-          <h1>Produkte</h1>
-          <button class="refresh" id="refreshProducts" type="button">↻ Rifresko</button>
+          <div><h1>Produktet</h1><p>Krijo, edito, përditëso stokun dhe menaxho produktet masivisht.</p></div>
+          <div class="actions">
+            <button class="secondary-btn" id="exportProducts" type="button">Eksporto CSV</button>
+            <button class="primary-btn" id="refreshProducts" type="button">Rifresko</button>
+          </div>
         </div>
         <div class="product-layout">
-          <form class="card" id="productForm">
-            <h2 id="formTitle" style="margin-bottom:14px">Shto produkt të ri</h2>
+          <form class="card product-form" id="productForm">
+            <h2 id="formTitle">Shto produkt të ri</h2>
             <div class="form-grid">
+              <div class="field full"><label for="productName">Emri i produktit *</label><input id="productName" required maxlength="120" /></div>
               <div class="field full">
-                <label for="productName">Emri i produktit *</label>
-                <input id="productName" required maxlength="120" />
-              </div>
-              <div class="field full">
-                <label for="productImage">Fotot e produktit (deri në 5) *</label>
+                <label for="productImage">Fotot e produktit (deri 5) *</label>
                 <input id="productImage" type="file" accept="image/*" multiple required />
-                <small class="field-hint">Kur editon produktin, fotot e reja zëvendësojnë ato ekzistuese.</small>
+                <small class="field-hint">Fotot e reja zëvendësojnë galerinë ekzistuese gjatë editimit.</small>
                 <div class="image-preview-grid" id="imagePreview"></div>
               </div>
-              <div class="field">
-                <label for="productPrice">Çmimi aktual (€) *</label>
-                <input id="productPrice" type="number" min="0" step="0.01" required />
-              </div>
-              <div class="field">
-                <label for="oldPrice">Çmimi i vjetër (€)</label>
-                <input id="oldPrice" type="number" min="0" step="0.01" />
-              </div>
-              <div class="field full">
-                <label for="productDescription">Përshkrimi</label>
-                <textarea id="productDescription"></textarea>
-              </div>
-              <div class="field full">
-                <label for="productSpecs">Specifikat (ndaji me presje)</label>
-                <input id="productSpecs" placeholder="Ngjyra: e zezë, Material: metal" />
-              </div>
+              <div class="field"><label for="productPrice">Çmimi aktual (€) *</label><input id="productPrice" type="number" min="0" step="0.01" required /></div>
+              <div class="field"><label for="oldPrice">Çmimi i vjetër (€)</label><input id="oldPrice" type="number" min="0" step="0.01" /></div>
+              <div class="field full"><label for="productDescription">Përshkrimi</label><textarea id="productDescription"></textarea></div>
+              <div class="field full"><label for="productSpecs">Specifikat (me presje)</label><input id="productSpecs" placeholder="Ngjyra: e zezë, Material: metal" /></div>
               <div class="field">
                 <label for="productCategory">Kategoria</label>
-                <input id="productCategory" list="productCategoryOptions" maxlength="80" placeholder="Zgjidh ose shkruaj kategori" />
-                <datalist id="productCategoryOptions">
-                  <option value="Shtëpi"></option>
-                  <option value="Për fëmijë"></option>
-                  <option value="Mjete pune"></option>
-                  <option value="Dekore"></option>
-                  <option value="Teknologji"></option>
-                </datalist>
+                <input id="productCategory" list="productCategoryOptions" maxlength="80" placeholder="Kategoria" />
+                <datalist id="productCategoryOptions"><option value="Shtëpi"><option value="Për fëmijë"><option value="Mjete pune"><option value="Dekore"><option value="Teknologji"></datalist>
               </div>
-              <div class="field">
-                <label for="productStock">Sasia në stok</label>
-                <input id="productStock" type="number" min="0" step="1" value="0" required />
-              </div>
-              <div class="field full check">
-                <input id="productActive" type="checkbox" checked />
-                <label for="productActive">Produkt aktiv</label>
-              </div>
-              <div class="field full">
-                <button class="save" id="saveProduct" type="submit">Ruaj produktin</button>
-                <button class="cancel" id="cancelEdit" type="button" style="display:none">Anulo editimin</button>
-              </div>
+              <div class="field"><label for="productStock">Sasia në stok *</label><input id="productStock" type="number" min="0" step="1" value="0" required /></div>
+              <div class="field full check"><input id="productActive" type="checkbox" checked /><label for="productActive">Produkt aktiv</label></div>
+              <div class="field full"><button class="primary-btn full-btn" id="saveProduct" type="submit">Ruaj produktin</button><button class="secondary-btn full-btn" id="cancelEdit" type="button" style="display:none">Anulo editimin</button></div>
               <div class="error field full" id="productError"></div>
             </div>
           </form>
-          <div class="card">
-            <h2 style="margin-bottom:12px">Lista e produkteve</h2>
-            <div class="product-list" id="productList"><div class="empty">Po ngarkohen produktet...</div></div>
-          </div>
+          <section class="card" style="padding:14px">
+            <div class="toolbar products-toolbar">
+              <input class="control" id="productSearch" type="search" placeholder="Kërko emrin, kategorinë ose përshkrimin..." />
+              <select class="control" id="productCategoryFilter"><option value="">Të gjitha kategoritë</option></select>
+              <select class="control" id="productStateFilter"><option value="">Të gjitha gjendjet</option><option value="active">Aktiv</option><option value="inactive">Joaktiv</option><option value="low">Stok ≤ 5</option><option value="out">Pa stok</option></select>
+              <select class="control" id="productSort"><option value="newest">Më të rinjtë</option><option value="name">Emri A-Z</option><option value="price-high">Çmimi më i lartë</option><option value="stock-low">Stoku më i ulët</option></select>
+              <button class="secondary-btn" id="selectAllProducts" type="button">Zgjidh të gjitha</button>
+            </div>
+            <div class="bulk-bar" id="bulkBar">
+              <strong id="bulkCount">0 produkte të zgjedhura</strong>
+              <div class="actions">
+                <button class="secondary-btn" id="bulkActivate" type="button">Aktivizo</button>
+                <button class="secondary-btn" id="bulkDeactivate" type="button">Çaktivizo</button>
+                <button class="secondary-btn" id="bulkStock" type="button">Ndrysho stokun</button>
+              </div>
+            </div>
+            <div class="product-list" id="productList"></div>
+          </section>
         </div>
+      </section>
+
+      <section class="view" id="auditView">
+        <div class="panel-head">
+          <div><h1>Historiku i administratorit</h1><p>Aktivitetet e regjistruara në këtë browser (maks. 200).</p></div>
+          <div class="actions"><button class="secondary-btn" id="exportAudit" type="button">Eksporto CSV</button><button class="danger-btn" id="clearAudit" type="button">Pastro historikun</button></div>
+        </div>
+        <div class="card"><div class="card-body audit-list" id="auditList"></div></div>
       </section>
     </section>
   </main>
 
+  <dialog id="orderDialog">
+    <div class="dialog-head"><h2 id="orderDialogTitle">Detajet e porosisë</h2><button class="icon-btn" id="closeOrderDialog" type="button" aria-label="Mbyll">×</button></div>
+    <div class="dialog-body" id="orderDialogBody"></div>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
   <script src="./supabase-config.js"></script>
-  <script src="./supabase-client.js?v=2"></script>
+  <script src="./supabase-client.js?v=3"></script>
   <script>
     const login = document.getElementById("login");
     const panel = document.getElementById("panel");
-    const logout = document.getElementById("logout");
-    const loginError = document.getElementById("loginError");
+    const auditStorageKey = "omiStoreAdminAudit";
     let editingName = null;
     let editingImageUrls = [];
     let selectedImageFiles = [];
     let previewObjectUrls = [];
+    let products = [];
+    let orders = [];
+    let selectedProducts = new Set();
 
     function escapeHtml(value) {
       return String(value ?? "").replace(/[&<>"']/g, (character) => ({
         "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
       })[character]);
     }
+    function formatDate(value) { return value ? new Date(value).toLocaleString("sq-AL") : "—"; }
+    function formatPrice(value) { return `${Number(value || 0).toFixed(2).replace(".00", "")}€`; }
+    function normalize(value) { return String(value ?? "").toLocaleLowerCase("sq").trim(); }
+    function statusClass(value) { return String(value ?? "").replaceAll(" ", "-"); }
+    function getAudit() {
+      try { return JSON.parse(localStorage.getItem(auditStorageKey) || "[]"); } catch { return []; }
+    }
+    function recordAudit(action, target, detail = "") {
+      const entries = [{ at: new Date().toISOString(), action, target, detail }, ...getAudit()].slice(0, 200);
+      localStorage.setItem(auditStorageKey, JSON.stringify(entries));
+      renderAudit();
+    }
+    function toast(message) {
+      const node = document.getElementById("toast");
+      node.textContent = message;
+      node.classList.add("show");
+      clearTimeout(toast.timer);
+      toast.timer = setTimeout(() => node.classList.remove("show"), 2800);
+    }
     function renderImagePreviews(urls = [], files = []) {
       previewObjectUrls.forEach((url) => URL.revokeObjectURL(url));
       previewObjectUrls = [];
-      const preview = document.getElementById("imagePreview");
-      const sources = files.length
-        ? files.map((file) => {
-          const url = URL.createObjectURL(file);
-          previewObjectUrls.push(url);
-          return url;
-        })
-        : urls;
-      preview.innerHTML = sources.length
+      const sources = files.length ? files.map((file) => {
+        const url = URL.createObjectURL(file);
+        previewObjectUrls.push(url);
+        return url;
+      }) : urls;
+      document.getElementById("imagePreview").innerHTML = sources.length
         ? sources.map((url, index) => `<img src="${escapeHtml(url)}" alt="Foto ${index + 1}" />`).join("")
         : '<div class="image-preview-empty">Nuk është zgjedhur asnjë foto.</div>';
     }
-    function formatDate(value) { return new Date(value).toLocaleString("sq-AL"); }
-    function formatPrice(value) { return `${Number(value || 0).toFixed(2).replace(".00", "")}€`; }
-
-    async function renderOrders() {
-      try {
-        const orders = await window.OmiSupabase.getOrders();
-        const confirmed = orders.filter((order) => order.status === "Konfirmuar").length;
-        const transport = orders.filter((order) => order.status === "Në transport").length;
-        const delivered = orders.filter((order) => order.status === "Dorëzuar").length;
-        document.getElementById("stats").innerHTML = `
-          <div class="stat"><span>Të gjitha</span><strong>${orders.length}</strong></div>
-          <div class="stat"><span>Konfirmuar</span><strong>${confirmed}</strong></div>
-          <div class="stat"><span>Në transport</span><strong>${transport}</strong></div>
-          <div class="stat"><span>Dorëzuar</span><strong>${delivered}</strong></div>`;
-        if (!orders.length) {
-          document.getElementById("ordersTable").innerHTML = '<div class="empty">Nuk ka porosi ende.</div>';
-          return;
-        }
-        document.getElementById("ordersTable").innerHTML = `
-          <table><thead><tr><th>Porosia</th><th>Klienti</th><th>Produkte</th><th>Totali / Pagesa</th><th>Statusi</th></tr></thead>
-          <tbody>${orders.map((order) => `
-            <tr><td><strong>${escapeHtml(order.order_number)}</strong><small>${escapeHtml(formatDate(order.created_at))}</small></td>
-            <td><strong>${escapeHtml(order.customer?.name)}</strong><small>${escapeHtml(order.customer?.phone)}</small><small>${escapeHtml(order.customer?.city)}, ${escapeHtml(order.customer?.address)}</small>${order.customer?.note ? `<small>Shënim: ${escapeHtml(order.customer.note)}</small>` : ""}</td>
-            <td>${(order.items || []).map((item) => `${escapeHtml(item.name)} × ${escapeHtml(item.quantity)}`).join("<br>")}</td>
-            <td><strong>${escapeHtml(formatPrice(order.total))}</strong><small>${escapeHtml(order.payment)}</small></td>
-            <td><select data-order-number="${escapeHtml(order.order_number)}">${["I ri","Konfirmuar","Në transport","Dorëzuar","Anuluar"].map((status) => `<option${status === order.status ? " selected" : ""}>${escapeHtml(status)}</option>`).join("")}</select></td></tr>`).join("")}</tbody></table>`;
-        document.querySelectorAll("select[data-order-number]").forEach((select) => {
-          select.addEventListener("change", async () => {
-            select.disabled = true;
-            try { await window.OmiSupabase.updateOrderStatus(select.dataset.orderNumber, select.value); await renderOrders(); }
-            catch (error) { document.getElementById("ordersTable").insertAdjacentHTML("afterbegin", `<div class="error">${escapeHtml(error.message)}</div>`); select.disabled = false; }
-          });
-        });
-      } catch (error) {
-        document.getElementById("ordersTable").innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
-      }
+    function downloadCsv(filename, headers, rows) {
+      const escapeCsv = (value) => `"${String(value ?? "").replaceAll('"', '""')}"`;
+      const csv = [headers, ...rows].map((row) => row.map(escapeCsv).join(",")).join("\r\n");
+      const url = URL.createObjectURL(new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
     }
 
+    function filteredOrders() {
+      const query = normalize(document.getElementById("orderSearch").value);
+      const status = document.getElementById("orderStatusFilter").value;
+      const date = document.getElementById("orderDateFilter").value;
+      const sort = document.getElementById("orderSort").value;
+      const list = orders.filter((order) => {
+        const haystack = normalize([order.order_number, order.customer?.name, order.customer?.phone, order.customer?.city, order.customer?.address].join(" "));
+        const orderDate = String(order.created_at || "").slice(0, 10);
+        return (!query || haystack.includes(query)) && (!status || order.status === status) && (!date || orderDate === date);
+      });
+      return list.sort((a, b) => sort === "oldest" ? new Date(a.created_at) - new Date(b.created_at)
+        : sort === "highest" ? Number(b.total) - Number(a.total)
+        : new Date(b.created_at) - new Date(a.created_at));
+    }
+    function filteredProducts() {
+      const query = normalize(document.getElementById("productSearch").value);
+      const category = document.getElementById("productCategoryFilter").value;
+      const state = document.getElementById("productStateFilter").value;
+      const sort = document.getElementById("productSort").value;
+      const list = products.filter((product) => {
+        const haystack = normalize([product.name, product.category, product.description].join(" "));
+        const stock = Number(product.stock || 0);
+        const stateMatch = !state || (state === "active" && product.active) || (state === "inactive" && !product.active)
+          || (state === "low" && stock <= 5) || (state === "out" && stock === 0);
+        return (!query || haystack.includes(query)) && (!category || product.category === category) && stateMatch;
+      });
+      return list.sort((a, b) => sort === "name" ? a.name.localeCompare(b.name, "sq")
+        : sort === "price-high" ? Number(b.price) - Number(a.price)
+        : sort === "stock-low" ? Number(a.stock) - Number(b.stock)
+        : new Date(b.created_at || 0) - new Date(a.created_at || 0));
+    }
+
+    function renderDashboard() {
+      const nonCancelled = orders.filter((order) => order.status !== "Anuluar");
+      const revenue = nonCancelled.filter((order) => order.status === "Dorëzuar").reduce((sum, order) => sum + Number(order.total || 0), 0);
+      const today = new Date().toISOString().slice(0, 10);
+      const todayCount = orders.filter((order) => String(order.created_at).slice(0, 10) === today).length;
+      const lowStock = products.filter((product) => product.active && Number(product.stock || 0) <= 5).length;
+      document.getElementById("dashboardStats").innerHTML = `
+        <div class="stat"><span>Shitje të dorëzuara</span><strong>${escapeHtml(formatPrice(revenue))}</strong><small>${nonCancelled.length} porosi të pavlefshme për anulim</small></div>
+        <div class="stat"><span>Porositë sot</span><strong>${todayCount}</strong><small>${orders.filter((order) => order.status === "I ri").length} të reja</small></div>
+        <div class="stat"><span>Produkte aktive</span><strong>${products.filter((product) => product.active).length}</strong><small>nga ${products.length} gjithsej</small></div>
+        <div class="stat"><span>Stok i ulët</span><strong>${lowStock}</strong><small>produkte aktive ≤ 5 copë</small></div>`;
+      document.getElementById("recentOrders").innerHTML = orders.slice().sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 10).map((order) => `
+        <div class="compact-row"><div><strong>${escapeHtml(order.order_number)} · ${escapeHtml(order.customer?.name)}</strong><small>${escapeHtml(formatDate(order.created_at))}</small></div><div><strong>${escapeHtml(formatPrice(order.total))}</strong><span class="status ${statusClass(order.status)}">${escapeHtml(order.status)}</span></div></div>`).join("") || '<div class="empty">Nuk ka porosi ende.</div>';
+      document.getElementById("lowStockProducts").innerHTML = products.filter((product) => product.active && Number(product.stock || 0) <= 5)
+        .sort((a,b) => Number(a.stock) - Number(b.stock)).map((product) => `
+          <div class="compact-row"><div><strong>${escapeHtml(product.name)}</strong><small>${escapeHtml(product.category)}</small></div><strong class="stock-low">${escapeHtml(product.stock)} copë</strong></div>`).join("") || '<div class="empty">Nuk ka produkte me stok të ulët.</div>';
+    }
+
+    function renderOrders() {
+      const visible = filteredOrders();
+      document.getElementById("orderStats").innerHTML = `
+        <div class="stat"><span>Rezultatet</span><strong>${visible.length}</strong><small>nga ${orders.length} porosi</small></div>
+        <div class="stat"><span>Totali i filtruar</span><strong>${formatPrice(visible.reduce((sum, order) => sum + Number(order.total || 0), 0))}</strong></div>
+        <div class="stat"><span>Të reja</span><strong>${visible.filter((order) => order.status === "I ri").length}</strong></div>
+        <div class="stat"><span>Në proces</span><strong>${visible.filter((order) => ["Konfirmuar","Në transport"].includes(order.status)).length}</strong></div>`;
+      document.getElementById("ordersTable").innerHTML = visible.length ? `
+        <table><thead><tr><th>Porosia</th><th>Klienti</th><th>Produktet</th><th>Totali</th><th>Statusi</th><th>Veprime</th></tr></thead>
+        <tbody>${visible.map((order) => `
+          <tr><td><strong>${escapeHtml(order.order_number)}</strong><small>${escapeHtml(formatDate(order.created_at))}</small></td>
+          <td><strong>${escapeHtml(order.customer?.name)}</strong><small>${escapeHtml(order.customer?.phone)}</small><small>${escapeHtml(order.customer?.city)}</small></td>
+          <td>${(order.items || []).map((item) => `${escapeHtml(item.name)} × ${escapeHtml(item.quantity)}`).join("<br>")}</td>
+          <td><strong>${escapeHtml(formatPrice(order.total))}</strong><small>${escapeHtml(order.payment)}</small></td>
+          <td><select class="control" data-order-number="${escapeHtml(order.order_number)}">${["I ri","Konfirmuar","Në transport","Dorëzuar","Anuluar"].map((status) => `<option${status === order.status ? " selected" : ""}>${escapeHtml(status)}</option>`).join("")}</select></td>
+          <td><div class="actions"><button class="mini-btn" type="button" data-order-details="${escapeHtml(order.order_number)}">Detaje</button></div></td></tr>`).join("")}</tbody></table>` : '<div class="empty">Nuk u gjet asnjë porosi.</div>';
+      document.querySelectorAll("select[data-order-number]").forEach((select) => select.addEventListener("change", changeOrderStatus));
+      document.querySelectorAll("[data-order-details]").forEach((button) => button.addEventListener("click", () => openOrderDialog(button.dataset.orderDetails)));
+    }
+
+    async function changeOrderStatus(event) {
+      const select = event.currentTarget;
+      const order = orders.find((item) => item.order_number === select.dataset.orderNumber);
+      if (!order) return;
+      const previous = order.status;
+      select.disabled = true;
+      try {
+        await window.OmiSupabase.updateOrderStatus(order.order_number, select.value);
+        order.status = select.value;
+        recordAudit("Ndryshim statusi", order.order_number, `${previous} → ${order.status}`);
+        renderOrders();
+        renderDashboard();
+        toast("Statusi i porosisë u përditësua.");
+      } catch (error) {
+        select.value = previous;
+        toast(error.message);
+      } finally { select.disabled = false; }
+    }
+
+    function openOrderDialog(orderNumber) {
+      const order = orders.find((item) => item.order_number === orderNumber);
+      if (!order) return;
+      document.getElementById("orderDialogTitle").textContent = `Porosia ${order.order_number}`;
+      document.getElementById("orderDialogBody").innerHTML = `
+        <div class="detail-grid">
+          <div class="detail-box"><h3>Klienti</h3><p><strong>${escapeHtml(order.customer?.name)}</strong></p><p>${escapeHtml(order.customer?.phone)}</p><p>${escapeHtml(order.customer?.city)}</p><p>${escapeHtml(order.customer?.address)}</p>${order.customer?.note ? `<p>Shënim: ${escapeHtml(order.customer.note)}</p>` : ""}</div>
+          <div class="detail-box"><h3>Porosia</h3><p>Data: ${escapeHtml(formatDate(order.created_at))}</p><p>Statusi: ${escapeHtml(order.status)}</p><p>Pagesa: ${escapeHtml(order.payment)}</p><p><strong>Totali: ${escapeHtml(formatPrice(order.total))}</strong></p></div>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>Produkti</th><th>Sasia</th><th>Çmimi</th><th>Totali</th></tr></thead><tbody>${(order.items || []).map((item) => `<tr><td>${escapeHtml(item.name)}</td><td>${escapeHtml(item.quantity)}</td><td>${escapeHtml(formatPrice(item.price))}</td><td>${escapeHtml(formatPrice(Number(item.price) * Number(item.quantity)))}</td></tr>`).join("")}</tbody></table></div>
+        <div class="dialog-actions"><button class="secondary-btn" type="button" data-copy-order="${escapeHtml(order.order_number)}">Kopjo porosinë</button><button class="primary-btn" type="button" data-print-order="${escapeHtml(order.order_number)}">Printo</button></div>`;
+      document.querySelector("[data-copy-order]").addEventListener("click", () => copyOrder(order));
+      document.querySelector("[data-print-order]").addEventListener("click", () => printOrder(order));
+      document.getElementById("orderDialog").showModal();
+    }
+    async function copyOrder(order) {
+      const text = `Porosia ${order.order_number}\nKlienti: ${order.customer?.name}\nTelefon: ${order.customer?.phone}\nAdresa: ${order.customer?.city}, ${order.customer?.address}\n\n${(order.items || []).map((item) => `${item.name} x ${item.quantity} = ${formatPrice(item.price * item.quantity)}`).join("\n")}\n\nTotali: ${formatPrice(order.total)}\nStatusi: ${order.status}`;
+      await navigator.clipboard.writeText(text);
+      toast("Porosia u kopjua.");
+    }
+    function printOrder(order) {
+      const popup = window.open("", "_blank", "width=760,height=800");
+      popup.document.write(`<html><head><title>${escapeHtml(order.order_number)}</title><style>body{font:14px Arial;padding:30px;color:#222}h1{color:#3a0754}.row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #ddd}.total{font-size:20px;font-weight:bold;text-align:right;margin-top:20px}</style></head><body><h1>OMI STORE</h1><h2>${escapeHtml(order.order_number)}</h2><p>${escapeHtml(formatDate(order.created_at))}</p><h3>Klienti</h3><p>${escapeHtml(order.customer?.name)}<br>${escapeHtml(order.customer?.phone)}<br>${escapeHtml(order.customer?.city)}, ${escapeHtml(order.customer?.address)}</p><h3>Produktet</h3>${(order.items || []).map((item) => `<div class="row"><span>${escapeHtml(item.name)} × ${escapeHtml(item.quantity)}</span><strong>${escapeHtml(formatPrice(item.price * item.quantity))}</strong></div>`).join("")}<div class="total">Totali: ${escapeHtml(formatPrice(order.total))}</div><p>Statusi: ${escapeHtml(order.status)}</p><p>Pagesa: ${escapeHtml(order.payment)}</p></body></html>`);
+      popup.document.close();
+      popup.focus();
+      popup.print();
+    }
+
+    function renderProducts() {
+      const visible = filteredProducts();
+      const categories = [...new Set(products.map((product) => product.category).filter(Boolean))].sort((a,b) => a.localeCompare(b, "sq"));
+      const categoryFilter = document.getElementById("productCategoryFilter");
+      const selectedCategory = categoryFilter.value;
+      categoryFilter.innerHTML = `<option value="">Të gjitha kategoritë</option>${categories.map((category) => `<option${category === selectedCategory ? " selected" : ""}>${escapeHtml(category)}</option>`).join("")}`;
+      document.getElementById("productList").innerHTML = visible.length ? visible.map((product) => {
+        const images = window.OmiSupabase.getProductImages(product);
+        return `<article class="product-row">
+          <input type="checkbox" data-product-select="${escapeHtml(product.name)}"${selectedProducts.has(product.name) ? " checked" : ""} aria-label="Zgjidh ${escapeHtml(product.name)}" />
+          <img src="${escapeHtml(images[0] || "logo.png")}" alt="${escapeHtml(product.name)}" />
+          <div><h3>${escapeHtml(product.name)}</h3><p>${escapeHtml(formatPrice(product.price))} · <span class="${Number(product.stock) <= 5 ? "stock-low" : ""}">Stok: ${escapeHtml(product.stock)}</span> · ${escapeHtml(product.category)} · ${images.length} foto</p><p>${escapeHtml(Array.isArray(product.specifications) ? product.specifications.join(", ") : product.specifications || "")}</p><span class="status ${product.active ? "Dorëzuar" : "Anuluar"}">${product.active ? "Aktiv" : "Joaktiv"}</span></div>
+          <div class="product-row-actions"><button class="mini-btn" type="button" data-product-action="edit" data-name="${escapeHtml(product.name)}">Edito</button><button class="mini-btn" type="button" data-product-action="toggle" data-name="${escapeHtml(product.name)}">${product.active ? "Çaktivizo" : "Aktivizo"}</button><button class="mini-btn danger" type="button" data-product-action="delete" data-name="${escapeHtml(product.name)}">Fshi</button></div>
+        </article>`;
+      }).join("") : '<div class="empty">Nuk u gjet asnjë produkt.</div>';
+      document.querySelectorAll("[data-product-select]").forEach((checkbox) => checkbox.addEventListener("change", () => {
+        if (checkbox.checked) selectedProducts.add(checkbox.dataset.productSelect); else selectedProducts.delete(checkbox.dataset.productSelect);
+        updateBulkBar();
+      }));
+      document.querySelectorAll("[data-product-action]").forEach((button) => button.addEventListener("click", handleProductAction));
+      updateBulkBar();
+    }
+    function updateBulkBar() {
+      document.getElementById("bulkBar").classList.toggle("show", selectedProducts.size > 0);
+      document.getElementById("bulkCount").textContent = `${selectedProducts.size} produkte të zgjedhura`;
+    }
     function resetProductForm() {
       editingName = null;
       editingImageUrls = [];
@@ -256,49 +509,32 @@
       document.getElementById("saveProduct").textContent = "Ruaj produktin";
       document.getElementById("productError").textContent = "";
     }
-
-    async function renderProducts() {
-      const list = document.getElementById("productList");
-      try {
-        const products = await window.OmiSupabase.getAdminProducts();
-        if (!products.length) { list.innerHTML = '<div class="empty">Nuk ka produkte.</div>'; return; }
-        list.innerHTML = products.map((product) => {
-          const specs = Array.isArray(product.specifications) ? product.specifications.join(", ") : (product.specifications || "");
-          const images = window.OmiSupabase.getProductImages(product);
-          return `
-            <div class="product-row">
-              <img src="${escapeHtml(images[0] || "logo.png")}" alt="${escapeHtml(product.name)}" />
-              <div><h3>${escapeHtml(product.name)}</h3><p>${escapeHtml(formatPrice(product.price))} · Stok: ${escapeHtml(product.stock)} · ${escapeHtml(product.category)} · ${images.length} foto</p><p>${escapeHtml(specs)}</p><span class="status ${product.active ? "on" : "off"}">${product.active ? "Aktiv" : "Joaktiv"}</span></div>
-              <div class="actions">
-                <button class="action" type="button" data-action="edit" data-name="${escapeHtml(product.name)}">Edito</button>
-                <button class="action" type="button" data-action="toggle" data-name="${escapeHtml(product.name)}">${product.active ? "Çaktivizo" : "Aktivizo"}</button>
-                <button class="action danger" type="button" data-action="delete" data-name="${escapeHtml(product.name)}">Fshi</button>
-              </div>
-            </div>`;
-        }).join("");
-        list.querySelectorAll("[data-action]").forEach((button) => button.addEventListener("click", handleProductAction));
-      } catch (error) {
-        list.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
-      }
-    }
-
     async function handleProductAction(event) {
       const button = event.currentTarget;
-      const action = button.dataset.action;
       const name = button.dataset.name;
+      const action = button.dataset.productAction;
+      const product = products.find((item) => item.name === name);
+      if (!product) return;
       try {
-        const products = await window.OmiSupabase.getAdminProducts();
-        const product = products.find((item) => item.name === name);
-        if (!product) return;
+        button.disabled = true;
         if (action === "toggle") {
           await window.OmiSupabase.updateProduct(name, { active: !product.active });
-          await renderProducts();
+          product.active = !product.active;
+          recordAudit(product.active ? "Aktivizim produkti" : "Çaktivizim produkti", name);
+          renderProducts();
+          renderDashboard();
         } else if (action === "delete") {
-          if (!confirm(`Të fshihet "${name}"?`)) return;
+          const answer = prompt(`Për ta fshirë përgjithmonë produktin "${name}" dhe fotot e tij, shkruaj saktësisht emrin e produktit:`);
+          if (answer !== name) return;
           await window.OmiSupabase.deleteProduct(product);
+          products = products.filter((item) => item.name !== name);
+          selectedProducts.delete(name);
           if (editingName === name) resetProductForm();
-          await renderProducts();
-        } else if (action === "edit") {
+          recordAudit("Fshirje produkti", name);
+          renderProducts();
+          renderDashboard();
+          toast("Produkti u fshi.");
+        } else {
           editingName = name;
           editingImageUrls = window.OmiSupabase.getProductImages(product);
           selectedImageFiles = [];
@@ -315,46 +551,85 @@
           document.getElementById("productImage").required = false;
           document.getElementById("cancelEdit").style.display = "block";
           document.getElementById("saveProduct").textContent = "Ruaj ndryshimet";
-          document.getElementById("productError").textContent = "";
           document.getElementById("productForm").scrollIntoView({ behavior: "smooth", block: "start" });
         }
       } catch (error) {
         document.getElementById("productError").textContent = error.message;
+        toast(error.message);
+      } finally { button.disabled = false; }
+    }
+
+    async function bulkUpdate(active) {
+      const names = [...selectedProducts];
+      if (!names.length) return;
+      for (const name of names) {
+        await window.OmiSupabase.updateProduct(name, { active });
+        const product = products.find((item) => item.name === name);
+        if (product) product.active = active;
       }
+      recordAudit(active ? "Aktivizim masiv" : "Çaktivizim masiv", `${names.length} produkte`, names.join(", "));
+      selectedProducts.clear();
+      renderProducts();
+      renderDashboard();
+      toast(`${names.length} produkte u përditësuan.`);
+    }
+    async function bulkSetStock() {
+      const names = [...selectedProducts];
+      const raw = prompt(`Vendos stokun e ri për ${names.length} produkt(e):`, "0");
+      if (raw === null) return;
+      const stock = Number(raw);
+      if (!Number.isInteger(stock) || stock < 0) { toast("Stoku duhet të jetë numër i plotë 0 ose më i madh."); return; }
+      for (const name of names) {
+        await window.OmiSupabase.updateProduct(name, { stock });
+        const product = products.find((item) => item.name === name);
+        if (product) product.stock = stock;
+      }
+      recordAudit("Përditësim stoku masiv", `${names.length} produkte`, `Stoku u vendos ${stock}`);
+      selectedProducts.clear();
+      renderProducts();
+      renderDashboard();
+      toast("Stoku u përditësua.");
+    }
+
+    function renderAudit() {
+      const entries = getAudit();
+      document.getElementById("auditList").innerHTML = entries.length ? entries.map((entry) => `
+        <div class="compact-row"><div><strong>${escapeHtml(entry.action)}</strong><small>${escapeHtml(entry.target)}${entry.detail ? ` · ${escapeHtml(entry.detail)}` : ""}</small></div><small>${escapeHtml(formatDate(entry.at))}</small></div>`).join("") : '<div class="empty">Nuk ka aktivitet të regjistruar ende.</div>';
+    }
+
+    async function refreshData() {
+      const [loadedOrders, loadedProducts] = await Promise.all([
+        window.OmiSupabase.getOrders(),
+        window.OmiSupabase.getAdminProducts()
+      ]);
+      orders = loadedOrders || [];
+      products = loadedProducts || [];
+      selectedProducts = new Set([...selectedProducts].filter((name) => products.some((product) => product.name === name)));
+      renderDashboard();
+      renderOrders();
+      renderProducts();
+      renderAudit();
     }
 
     document.getElementById("productImage").addEventListener("change", (event) => {
-      const input = event.currentTarget;
-      selectedImageFiles = Array.from(input.files || []);
-      const error = document.getElementById("productError");
+      selectedImageFiles = Array.from(event.currentTarget.files || []);
       if (selectedImageFiles.length > 5) {
         selectedImageFiles = [];
-        input.value = "";
+        event.currentTarget.value = "";
         renderImagePreviews(editingImageUrls);
-        error.textContent = "Mund të zgjidhni maksimumi 5 fotografi.";
+        document.getElementById("productError").textContent = "Mund të zgjidhni maksimumi 5 fotografi.";
         return;
       }
-      error.textContent = "";
       renderImagePreviews(editingImageUrls, selectedImageFiles);
+      document.getElementById("productError").textContent = "";
     });
-
     document.getElementById("cancelEdit").addEventListener("click", resetProductForm);
-
     document.getElementById("productForm").addEventListener("submit", async (event) => {
       event.preventDefault();
       if (!editingName && selectedImageFiles.length === 0) {
         document.getElementById("productError").textContent = "Zgjidhni të paktën një fotografi.";
         return;
       }
-      if (selectedImageFiles.length > 5) {
-        document.getElementById("productError").textContent = "Mund të ngarkoni maksimumi 5 fotografi.";
-        return;
-      }
-      const name = document.getElementById("productName").value.trim();
-      const price = Number(document.getElementById("productPrice").value);
-      const oldPriceValue = document.getElementById("oldPrice").value;
-      const stock = Number(document.getElementById("productStock").value);
-      const specs = document.getElementById("productSpecs").value.split(",").map((item) => item.trim()).filter(Boolean);
       const saveButton = document.getElementById("saveProduct");
       saveButton.disabled = true;
       document.getElementById("productError").textContent = "";
@@ -362,85 +637,107 @@
       let uploadedImageUrls = [];
       let productSaved = false;
       try {
-        let imageUrls = editingImageUrls;
-        if (selectedImageFiles.length) {
-          uploadedImageUrls = await window.OmiSupabase.uploadProductImages(selectedImageFiles);
-          imageUrls = uploadedImageUrls;
-        }
-        const product = {
+        const imageUrls = selectedImageFiles.length ? (uploadedImageUrls = await window.OmiSupabase.uploadProductImages(selectedImageFiles)) : editingImageUrls;
+        const name = document.getElementById("productName").value.trim();
+        const value = {
           name,
-          price,
-          old_price: oldPriceValue === "" ? null : Number(oldPriceValue),
+          price: Number(document.getElementById("productPrice").value),
+          old_price: document.getElementById("oldPrice").value === "" ? null : Number(document.getElementById("oldPrice").value),
           description: document.getElementById("productDescription").value.trim(),
-          specifications: specs,
+          specifications: document.getElementById("productSpecs").value.split(",").map((item) => item.trim()).filter(Boolean),
           category: document.getElementById("productCategory").value.trim() || "Të tjera",
-          stock,
+          stock: Number(document.getElementById("productStock").value),
           active: document.getElementById("productActive").checked,
           image_url: window.OmiSupabase.serializeProductImages(imageUrls)
         };
-        if (editingName) await window.OmiSupabase.updateProduct(editingName, product);
-        else await window.OmiSupabase.createProduct(product);
+        if (editingName) await window.OmiSupabase.updateProduct(editingName, value);
+        else await window.OmiSupabase.createProduct(value);
         productSaved = true;
-        resetProductForm();
-        await renderProducts();
+        recordAudit(editingName ? "Editim produkti" : "Krijim produkti", name);
         if (uploadedImageUrls.length && oldImageUrls.length) {
-          try {
-            await window.OmiSupabase.deleteProductImages(oldImageUrls);
-          } catch (error) {
-            document.getElementById("productError").textContent = `Produkti u ruajt, por fotot e vjetra nuk u fshinë: ${error.message}`;
-          }
+          try { await window.OmiSupabase.deleteProductImages(oldImageUrls); }
+          catch (error) { toast(`Produkti u ruajt, por fotot e vjetra nuk u fshinë: ${error.message}`); }
         }
+        resetProductForm();
+        await refreshData();
+        toast("Produkti u ruajt.");
       } catch (error) {
         if (!productSaved && uploadedImageUrls.length) {
-          try {
-            await window.OmiSupabase.deleteProductImages(uploadedImageUrls);
-          } catch (cleanupError) {
-            error = new Error(`${error.message} Fotot e reja nuk u pastruan: ${cleanupError.message}`);
-          }
+          try { await window.OmiSupabase.deleteProductImages(uploadedImageUrls); }
+          catch (cleanupError) { error = new Error(`${error.message} Fotot e reja nuk u pastruan: ${cleanupError.message}`); }
         }
         document.getElementById("productError").textContent = error.message;
-      } finally {
-        saveButton.disabled = false;
-      }
+      } finally { saveButton.disabled = false; }
     });
 
+    document.querySelectorAll(".tab").forEach((tab) => tab.addEventListener("click", () => activateView(tab.dataset.view)));
     function activateView(viewId) {
-      document.querySelectorAll(".tab").forEach((item) => item.classList.remove("active"));
-      document.querySelectorAll(".view").forEach((item) => item.classList.remove("active"));
-      const tab = document.querySelector(`.tab[data-view="${viewId}"]`);
-      const view = document.getElementById(viewId);
-      if (!tab || !view) return;
-      tab.classList.add("active");
-      view.classList.add("active");
+      document.querySelectorAll(".tab").forEach((item) => item.classList.toggle("active", item.dataset.view === viewId));
+      document.querySelectorAll(".view").forEach((view) => view.classList.toggle("active", view.id === viewId));
+      location.hash = viewId.replace("View", "");
     }
-
-    document.querySelectorAll(".tab").forEach((tab) => tab.addEventListener("click", () => {
-      activateView(tab.dataset.view);
-      location.hash = tab.dataset.view === "productsView" ? "products" : "orders";
-    }));
-
+    ["orderSearch","orderStatusFilter","orderDateFilter","orderSort"].forEach((id) => document.getElementById(id).addEventListener(id === "orderSearch" ? "input" : "change", renderOrders));
+    ["productSearch","productCategoryFilter","productStateFilter","productSort"].forEach((id) => document.getElementById(id).addEventListener(id === "productSearch" ? "input" : "change", renderProducts));
+    document.getElementById("selectAllProducts").addEventListener("click", () => {
+      const visible = filteredProducts();
+      const allSelected = visible.length > 0 && visible.every((product) => selectedProducts.has(product.name));
+      visible.forEach((product) => allSelected ? selectedProducts.delete(product.name) : selectedProducts.add(product.name));
+      renderProducts();
+    });
+    document.getElementById("bulkActivate").addEventListener("click", () => bulkUpdate(true).catch((error) => toast(error.message)));
+    document.getElementById("bulkDeactivate").addEventListener("click", () => bulkUpdate(false).catch((error) => toast(error.message)));
+    document.getElementById("bulkStock").addEventListener("click", () => bulkSetStock().catch((error) => toast(error.message)));
+    document.getElementById("exportOrders").addEventListener("click", () => {
+      downloadCsv("omi-porosite.csv", ["Numri","Data","Klienti","Telefoni","Qyteti","Adresa","Produktet","Totali","Pagesa","Statusi"], filteredOrders().map((order) => [
+        order.order_number, order.created_at, order.customer?.name, order.customer?.phone, order.customer?.city, order.customer?.address,
+        (order.items || []).map((item) => `${item.name} x ${item.quantity}`).join("; "), Number(order.total), order.payment, order.status
+      ]));
+      recordAudit("Eksport porosish", `${filteredOrders().length} porosi`);
+    });
+    document.getElementById("exportProducts").addEventListener("click", () => {
+      downloadCsv("omi-produktet.csv", ["Emri","Kategoria","Cmimi","Cmimi_vjeter","Stoku","Aktiv","Fotot","Pershkrimi"], filteredProducts().map((product) => [
+        product.name, product.category, product.price, product.old_price, product.stock, product.active ? "Po" : "Jo", window.OmiSupabase.getProductImages(product).length, product.description
+      ]));
+      recordAudit("Eksport produktesh", `${filteredProducts().length} produkte`);
+    });
+    document.getElementById("exportAudit").addEventListener("click", () => downloadCsv("omi-historiku.csv", ["Data","Veprimi","Objekti","Detajet"], getAudit().map((entry) => [entry.at, entry.action, entry.target, entry.detail])));
+    document.getElementById("clearAudit").addEventListener("click", () => {
+      if (!confirm("Të pastrohet historiku lokal i administratorit?")) return;
+      localStorage.removeItem(auditStorageKey);
+      renderAudit();
+      toast("Historiku u pastrua.");
+    });
+    document.getElementById("closeOrderDialog").addEventListener("click", () => document.getElementById("orderDialog").close());
+    document.getElementById("orderDialog").addEventListener("click", (event) => { if (event.target === event.currentTarget) event.currentTarget.close(); });
+    ["refreshDashboard","refreshOrders","refreshProducts"].forEach((id) => document.getElementById(id).addEventListener("click", () => refreshData().then(() => toast("Të dhënat u rifreskuan.")).catch((error) => toast(error.message))));
+    document.getElementById("openStore").addEventListener("click", () => window.open("./index.html", "_blank", "noopener"));
+    document.getElementById("logout").addEventListener("click", async () => { await window.OmiSupabase.signOut(); location.reload(); });
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      const email = document.getElementById("adminEmail").value.trim();
+      const password = document.getElementById("adminPassword").value;
+      const button = document.getElementById("loginBtn");
+      button.disabled = true;
+      try {
+        await window.OmiSupabase.signIn(email, password);
+        await openPanel();
+      } catch (error) { document.getElementById("loginError").textContent = error.message; }
+      finally { button.disabled = false; }
+    });
     async function openPanel() {
       await window.OmiSupabase.verifyAdmin();
       login.style.display = "none";
       panel.style.display = "block";
-      logout.style.display = "block";
-      if (location.hash === "#products") activateView("productsView");
-      await Promise.all([renderOrders(), renderProducts()]);
+      document.getElementById("logout").style.display = "block";
+      document.getElementById("openStore").style.display = "block";
+      const hashView = { "#dashboard": "dashboardView", "#orders": "ordersView", "#products": "productsView", "#audit": "auditView" }[location.hash];
+      if (hashView) activateView(hashView);
+      await refreshData();
     }
-
-    document.getElementById("loginBtn").addEventListener("click", async () => {
-      const email = document.getElementById("adminEmail").value.trim();
-      const password = document.getElementById("adminPassword").value;
-      try { await window.OmiSupabase.signIn(email, password); await openPanel(); }
-      catch (error) { loginError.textContent = error.message; }
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && document.activeElement === document.getElementById("adminPassword")) document.getElementById("loginBtn").click();
     });
-    document.getElementById("refreshOrders").addEventListener("click", renderOrders);
-    document.getElementById("refreshProducts").addEventListener("click", renderProducts);
-    logout.addEventListener("click", async () => { await window.OmiSupabase.signOut(); location.reload(); });
-
-    if (window.OmiSupabase.hasSession()) {
-      openPanel().catch((error) => { loginError.textContent = error.message; });
-    }
+    if (window.OmiSupabase.hasSession()) openPanel().catch((error) => { document.getElementById("loginError").textContent = error.message; });
+    renderAudit();
   </script>
 </body>
 </html>
