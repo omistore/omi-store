@@ -6103,6 +6103,23 @@ footer {
     filter: drop-shadow(0 16px 18px rgba(20, 0, 31, .22));
 }
 
+.category-filter {
+    border-color: #6a1b9a;
+    color: #6a1b9a;
+}
+
+.category-filter.active,
+.category-filter:hover {
+    border-color: #6a1b9a;
+    background: #6a1b9a;
+    color: #fff;
+}
+
+.product-badge:not(.sale) {
+    background: #6a1b9a;
+    color: #fff;
+}
+
 .btn-buy,
 #contactForm button,
 .checkout-btn,
