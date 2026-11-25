@@ -417,9 +417,11 @@
           <td>${(order.items || []).map((item) => `${escapeHtml(item.name)} × ${escapeHtml(item.quantity)}`).join("<br>")}</td>
           <td><strong>${escapeHtml(formatPrice(order.total))}</strong><small>${escapeHtml(order.payment)}</small></td>
           <td><select class="control" data-order-number="${escapeHtml(order.order_number)}">${["I ri","Konfirmuar","Në transport","Dorëzuar","Anuluar"].map((status) => `<option${status === order.status ? " selected" : ""}>${escapeHtml(status)}</option>`).join("")}</select></td>
-          <td><div class="actions"><button class="mini-btn" type="button" data-order-details="${escapeHtml(order.order_number)}">Detaje</button></div></td></tr>`).join("")}</tbody></table>` : '<div class="empty">Nuk u gjet asnjë porosi.</div>';
+          <td><div class="actions"><button class="mini-btn" type="button" data-order-details="${escapeHtml(order.order_number)}">Detaje</button><button class="mini-btn" type="button" data-order-edit="${escapeHtml(order.order_number)}">Edito</button><button class="mini-btn danger" type="button" data-order-delete="${escapeHtml(order.order_number)}">Fshi</button></div></td></tr>`).join("")}</tbody></table>` : '<div class="empty">Nuk u gjet asnjë porosi.</div>';
       document.querySelectorAll("select[data-order-number]").forEach((select) => select.addEventListener("change", changeOrderStatus));
       document.querySelectorAll("[data-order-details]").forEach((button) => button.addEventListener("click", () => openOrderDialog(button.dataset.orderDetails)));
+      document.querySelectorAll("[data-order-edit]").forEach((button) => button.addEventListener("click", () => openOrderEditDialog(button.dataset.orderEdit)));
+      document.querySelectorAll("[data-order-delete]").forEach((button) => button.addEventListener("click", () => deleteOrder(button.dataset.orderDelete)));
     }
 
     async function changeOrderStatus(event) {
@@ -455,6 +457,69 @@
       document.querySelector("[data-copy-order]").addEventListener("click", () => copyOrder(order));
       document.querySelector("[data-print-order]").addEventListener("click", () => printOrder(order));
       document.getElementById("orderDialog").showModal();
+    }
+    function openOrderEditDialog(orderNumber) {
+      const order = orders.find((item) => item.order_number === orderNumber);
+      if (!order) return;
+      document.getElementById("orderDialogTitle").textContent = `Edito porosinë ${order.order_number}`;
+      document.getElementById("orderDialogBody").innerHTML = `
+        <form class="order-edit-form" id="orderEditForm">
+          <div class="field"><label for="editName">Emri</label><input id="editName" name="name" required minlength="2" maxlength="120" value="${escapeHtml(order.customer?.name)}" /></div>
+          <div class="field"><label for="editPhone">Telefoni</label><input id="editPhone" name="phone" required minlength="5" maxlength="40" value="${escapeHtml(order.customer?.phone)}" /></div>
+          <div class="field"><label for="editCity">Qyteti</label><input id="editCity" name="city" required minlength="2" maxlength="120" value="${escapeHtml(order.customer?.city)}" /></div>
+          <div class="field"><label for="editAddress">Adresa</label><input id="editAddress" name="address" required minlength="3" maxlength="240" value="${escapeHtml(order.customer?.address)}" /></div>
+          <div class="field"><label for="editNote">Shënim</label><textarea id="editNote" name="note" maxlength="500">${escapeHtml(order.customer?.note)}</textarea></div>
+          <div class="dialog-actions"><button class="secondary-btn" type="button" id="cancelOrderEdit">Anulo</button><button class="primary-btn" type="submit">Ruaj ndryshimet</button></div>
+        </form>`;
+      document.getElementById("orderEditForm").addEventListener("submit", (event) => saveOrderDetails(event, order));
+      document.getElementById("cancelOrderEdit").addEventListener("click", () => openOrderDialog(order.order_number));
+      document.getElementById("orderDialog").showModal();
+    }
+    async function saveOrderDetails(event, order) {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const values = Object.fromEntries(new FormData(form));
+      const customer = {
+        ...order.customer,
+        name: values.name.trim(),
+        phone: values.phone.trim(),
+        city: values.city.trim(),
+        address: values.address.trim(),
+        note: values.note.trim()
+      };
+      const submit = form.querySelector("[type=submit]");
+      submit.disabled = true;
+      try {
+        await window.OmiSupabase.updateOrderDetails(order.order_number, customer);
+        order.customer = customer;
+        recordAudit("Ndryshim porosie", order.order_number, customer.name);
+        renderOrders();
+        openOrderDialog(order.order_number);
+        toast("Porosia u përditësua.");
+      } catch (error) {
+        submit.disabled = false;
+        toast(error.message);
+      }
+    }
+    async function deleteOrder(orderNumber) {
+      const order = orders.find((item) => item.order_number === orderNumber);
+      if (!order) return;
+      const answer = prompt(`Për ta fshirë përgjithmonë porosinë "${order.order_number}", shkruaj saktësisht numrin e porosisë:`);
+      if (answer === null) return;
+      if (answer.trim() !== order.order_number) {
+        toast("Numri i porosisë nuk përputhet. Porosia nuk u fshi.");
+        return;
+      }
+      try {
+        await window.OmiSupabase.deleteOrder(order.order_number);
+        orders = orders.filter((item) => item !== order);
+        recordAudit("Fshirje porosie", order.order_number, order.customer?.name || "");
+        renderOrders();
+        renderDashboard();
+        toast("Porosia u fshi.");
+      } catch (error) {
+        toast(error.message);
+      }
     }
     async function copyOrder(order) {
       const text = `Porosia ${order.order_number}\nKlienti: ${order.customer?.name}\nTelefon: ${order.customer?.phone}\nAdresa: ${order.customer?.city}, ${order.customer?.address}\n\n${(order.items || []).map((item) => `${item.name} x ${item.quantity} = ${formatPrice(item.price * item.quantity)}`).join("\n")}\n\nTotali: ${formatPrice(order.total)}\nStatusi: ${order.status}`;

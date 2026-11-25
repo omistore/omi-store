@@ -179,6 +179,50 @@
     }
   }
 
+  async function updateOrderDetails(orderNumber, customer) {
+    const { url, anonKey } = getConfig();
+    const session = await getValidSession();
+    const params = new URLSearchParams({
+      order_number: `eq.${orderNumber}`,
+      select: "order_number"
+    });
+    const response = await fetch(`${url}/rest/v1/orders?${params}`, {
+      method: "PATCH",
+      headers: {
+        apikey: anonKey,
+        Authorization: `Bearer ${session.access_token}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation"
+      },
+      body: JSON.stringify({ customer })
+    });
+    const rows = await readResponse(response);
+    if (!Array.isArray(rows) || rows.length === 0) {
+      throw new Error("Porosia nuk u përditësua. Kontrolloni lejet e administratorit.");
+    }
+  }
+
+  async function deleteOrder(orderNumber) {
+    const { url, anonKey } = getConfig();
+    const session = await getValidSession();
+    const params = new URLSearchParams({
+      order_number: `eq.${orderNumber}`,
+      select: "order_number"
+    });
+    const response = await fetch(`${url}/rest/v1/orders?${params}`, {
+      method: "DELETE",
+      headers: {
+        apikey: anonKey,
+        Authorization: `Bearer ${session.access_token}`,
+        Prefer: "return=representation"
+      }
+    });
+    const rows = await readResponse(response);
+    if (!Array.isArray(rows) || rows.length === 0) {
+      throw new Error("Porosia nuk u fshi. Kontrolloni lejet e administratorit.");
+    }
+  }
+
   async function getActiveProducts() {
     const { url, anonKey } = getConfig();
     const response = await fetch(`${url}/rest/v1/store_products?select=*&active=eq.true&order=created_at.desc`, {
@@ -316,6 +360,8 @@
     getOrders,
     verifyAdmin,
     updateOrderStatus,
+    updateOrderDetails,
+    deleteOrder,
     getActiveProducts,
     getAdminProducts,
     getProductImages,

@@ -81,7 +81,7 @@ alter table public.store_products enable row level security;
 
 grant usage on schema public to anon, authenticated;
 grant insert on public.orders to anon, authenticated;
-grant select, update on public.orders to authenticated;
+grant select, update, delete on public.orders to authenticated;
 grant select on public.store_admins to authenticated;
 grant select on public.store_products to anon, authenticated;
 
@@ -136,6 +136,17 @@ create policy "Store admins can update orders"
     )
   )
   with check (
+    exists (
+      select 1
+      from public.store_admins
+      where store_admins.user_id = (select auth.uid())
+    )
+  );
+
+drop policy if exists "Store admins can delete orders" on public.orders;
+create policy "Store admins can delete orders"
+  on public.orders for delete to authenticated
+  using (
     exists (
       select 1
       from public.store_admins
