@@ -396,7 +396,7 @@
         <div class="stat"><span>Produkte aktive</span><strong>${products.filter((product) => product.active).length}</strong><small>nga ${products.length} gjithsej</small></div>
         <div class="stat"><span>Stok i ulët</span><strong>${lowStock}</strong><small>produkte aktive ≤ 5 copë</small></div>`;
       document.getElementById("recentOrders").innerHTML = orders.slice().sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 10).map((order) => `
-        <div class="compact-row"><div><strong>${escapeHtml(order.order_number)} · ${escapeHtml(order.customer?.name)}</strong><small>${escapeHtml(formatDate(order.created_at))}</small></div><div><strong>${escapeHtml(formatPrice(order.total))}</strong><span class="status ${statusClass(order.status)}">${escapeHtml(order.status)}</span></div></div>`).join("") || '<div class="empty">Nuk ka porosi ende.</div>';
+        <div class="compact-row" data-order-row="${escapeHtml(order.order_number)}" style="cursor:pointer"><div><strong>${escapeHtml(order.order_number)} ·${escapeHtml(order.customer?.name)}</strong><small>${escapeHtml(formatDate(order.created_at))}</small></div><div><strong>${escapeHtml(formatPrice(order.total))}</strong><span class="status ${statusClass(order.status)}">${escapeHtml(order.status)}</span></div></div>`).join("") || '<div class="empty">Nuk ka porosi ende.</div>';
       document.getElementById("lowStockProducts").innerHTML = products.filter((product) => product.active && Number(product.stock || 0) <= 5)
         .sort((a,b) => Number(a.stock) - Number(b.stock)).map((product) => `
           <div class="compact-row"><div><strong>${escapeHtml(product.name)}</strong><small>${escapeHtml(product.category)}</small></div><strong class="stock-low">${escapeHtml(product.stock)} copë</strong></div>`).join("") || '<div class="empty">Nuk ka produkte me stok të ulët.</div>';
@@ -412,7 +412,7 @@
       document.getElementById("ordersTable").innerHTML = visible.length ? `
         <table><thead><tr><th>Porosia</th><th>Klienti</th><th>Produktet</th><th>Totali</th><th>Statusi</th><th>Veprime</th></tr></thead>
         <tbody>${visible.map((order) => `
-          <tr><td><strong>${escapeHtml(order.order_number)}</strong><small>${escapeHtml(formatDate(order.created_at))}</small></td>
+          <tr data-order-row="${escapeHtml(order.order_number)}" style="cursor:pointer"><td><strong>${escapeHtml(order.order_number)}</strong><small>${escapeHtml(formatDate(order.created_at))}</small></td>
           <td><strong>${escapeHtml(order.customer?.name)}</strong><small>${escapeHtml(order.customer?.phone)}</small><small>${escapeHtml(order.customer?.city)}</small></td>
           <td>${(order.items || []).map((item) => `${escapeHtml(item.name)} × ${escapeHtml(item.quantity)}`).join("<br>")}</td>
           <td><strong>${escapeHtml(formatPrice(order.total))}</strong><small>${escapeHtml(order.payment)}</small></td>
@@ -768,6 +768,11 @@
       toast("Historiku u pastrua.");
     });
     document.getElementById("closeOrderDialog").addEventListener("click", () => document.getElementById("orderDialog").close());
+    ["ordersTable", "recentOrders"].forEach((id) => document.getElementById(id).addEventListener("click", (event) => {
+      const row = event.target.closest("[data-order-row]");
+      if (!row || event.target.closest("button, select, input, textarea, a")) return;
+      openOrderDialog(row.dataset.orderRow);
+    }));
     document.getElementById("orderDialog").addEventListener("click", (event) => { if (event.target === event.currentTarget) event.currentTarget.close(); });
     ["refreshDashboard","refreshOrders","refreshProducts"].forEach((id) => document.getElementById(id).addEventListener("click", () => refreshData().then(() => toast("Të dhënat u rifreskuan.")).catch((error) => toast(error.message))));
     document.getElementById("openStore").addEventListener("click", () => window.open("./index.html", "_blank", "noopener"));
