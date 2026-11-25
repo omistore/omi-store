@@ -504,12 +504,7 @@
     async function deleteOrder(orderNumber) {
       const order = orders.find((item) => item.order_number === orderNumber);
       if (!order) return;
-      const answer = prompt(`Për ta fshirë përgjithmonë porosinë "${order.order_number}", shkruaj saktësisht numrin e porosisë:`);
-      if (answer === null) return;
-      if (answer.trim() !== order.order_number) {
-        toast("Numri i porosisë nuk përputhet. Porosia nuk u fshi.");
-        return;
-      }
+      if (!confirm(`Të fshihet përgjithmonë porosia ${order.order_number}? Ky veprim nuk kthehet mbrapsht.`)) return;
       try {
         await window.OmiSupabase.deleteOrder(order.order_number);
         orders = orders.filter((item) => item !== order);
