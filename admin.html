@@ -297,6 +297,7 @@
             <div class="field"><label for="bannerTitle">Titulli (maks. 120 karaktere)</label><input id="bannerTitle" maxlength="120" placeholder="Gëzuar festat!" /></div>
             <div class="field full"><label for="bannerMessage">Mesazhi (maks. 300 karaktere)</label><textarea id="bannerMessage" maxlength="300"></textarea></div>
             <div class="field"><label for="bannerAlign">Pozicioni i tekstit</label><select id="bannerAlign"><option value="left">Majtas</option><option value="center">Qendër</option><option value="right">Djathtas</option></select></div>
+            <div class="field check"><input id="bannerMotion" type="checkbox" /><label for="bannerMotion">Teksti lëviz (efekt shiriti)</label></div>
             <div class="field full">
               <label for="bannerImageFile">Foto e bannerit (opsionale)</label>
               <input id="bannerImageFile" type="file" accept="image/*" />
@@ -725,6 +726,7 @@
       document.getElementById("bannerButtonText").value = siteSettings.banner_button_text || "";
       document.getElementById("bannerButtonLink").value = siteSettings.banner_button_link || "";
       document.getElementById("bannerAlign").value = siteSettings.banner_align || "center";
+      document.getElementById("bannerMotion").checked = Boolean(siteSettings.banner_motion);
       document.getElementById("bannerImageRemove").checked = false;
       document.getElementById("bannerImageFile").value = "";
       renderHeroPreview(siteSettings.hero_image_url || "hero-products.png", "Foto kryesore aktuale");
@@ -777,7 +779,8 @@
           banner_button_text: document.getElementById("bannerButtonText").value.trim() || null,
           banner_button_link: bannerButtonLink || null,
           banner_image_url: newBannerImageUrl || null,
-          banner_align: document.getElementById("bannerAlign").value
+          banner_align: document.getElementById("bannerAlign").value,
+          banner_motion: document.getElementById("bannerMotion").checked
         };
         await window.OmiSupabase.updateSiteSettings(settings);
         if (oldBannerImageUrl && oldBannerImageUrl !== newBannerImageUrl) await window.OmiSupabase.deleteProductImages([oldBannerImageUrl]).catch(() => {});

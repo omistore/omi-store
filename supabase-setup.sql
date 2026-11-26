@@ -247,7 +247,8 @@ alter table public.store_site_settings
   add column if not exists banner_button_text text check (banner_button_text is null or length(banner_button_text) <= 40),
   add column if not exists banner_button_link text check (banner_button_link is null or length(banner_button_link) <= 200),
   add column if not exists banner_image_url text,
-  add column if not exists banner_align text not null default 'center' check (banner_align in ('left', 'center', 'right'));
+  add column if not exists banner_align text not null default 'center' check (banner_align in ('left', 'center', 'right')),
+  add column if not exists banner_motion boolean not null default false;
 
 alter table public.store_site_settings enable row level security;
 

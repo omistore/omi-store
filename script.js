@@ -183,6 +183,7 @@ async function loadSiteSettingsFromSupabase() {
             const alignment = { left: "flex-start", center: "center", right: "flex-end" }[settings.banner_align] || "center";
             holidayBanner.style.justifyContent = alignment;
             holidayBanner.style.textAlign = settings.banner_align || "center";
+            if (settings.banner_motion) holidayBanner.classList.add("holiday-ribbon--scroll");
             if (settings.banner_image_url) {
                 holidayBanner.classList.add("holiday-ribbon--photo");
                 const photo = settings.banner_image_url.replace(/"/g, "%22");

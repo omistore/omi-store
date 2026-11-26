@@ -15,7 +15,7 @@
     "logo": "https://omistoree.com/favicon.png"
   }
   </script>
-  <link rel="stylesheet" href="./style.css?v=39" />
+  <link rel="stylesheet" href="./style.css?v=40" />
 </head>
 <body>
   <header class="header">
@@ -44,8 +44,12 @@
 
   <div class="holiday-ribbon" id="holidayBanner" hidden>
     <span id="bannerLabel" class="holiday-ribbon-label">FESTA</span>
-    <span id="holidayTitle" class="holiday-ribbon-title"></span>
-    <span id="holidayMessage" class="holiday-ribbon-message"></span>
+    <div class="holiday-ribbon-viewport">
+      <span class="holiday-ribbon-text">
+        <span id="holidayTitle" class="holiday-ribbon-title"></span>
+        <span id="holidayMessage" class="holiday-ribbon-message"></span>
+      </span>
+    </div>
     <a id="holidayButton" class="holiday-ribbon-link" href="#produkter" hidden></a>
   </div>
 
@@ -329,6 +333,6 @@
 
   <script src="./supabase-config.js"></script>
   <script src="./supabase-client.js?v=3"></script>
-  <script src="./script.js?v=12"></script>
+  <script src="./script.js?v=13"></script>
 </body>
 </html>
