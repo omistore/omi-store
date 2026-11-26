@@ -157,52 +157,6 @@ function bindCartImageFallbacks(container) {
     });
 }
 
-async function loadSiteSettingsFromSupabase() {
-    const heroImage = document.getElementById("heroImage");
-    const heroBadge = document.getElementById("heroBadge");
-    const heroMessage = document.getElementById("heroMessage");
-    const holidayBanner = document.getElementById("holidayBanner");
-    if (!window.OmiSupabase) return;
-
-    try {
-        const settings = await window.OmiSupabase.getSiteSettings();
-        if (settings.hero_image_url && heroImage) heroImage.src = settings.hero_image_url;
-        if (settings.hero_badge && heroBadge) heroBadge.textContent = settings.hero_badge;
-        if (settings.hero_message && heroMessage) heroMessage.textContent = settings.hero_message;
-        const heroButton = document.getElementById("heroButton");
-        const heroButtonLink = settings.hero_button_link || "#produkter";
-        if (settings.hero_button_text && heroButton && /^(#|https:\/\/)/.test(heroButtonLink)) {
-            document.getElementById("heroButtonText").textContent = settings.hero_button_text;
-            heroButton.href = heroButtonLink;
-        }
-        if (settings.banner_active && settings.banner_title && holidayBanner) {
-            document.getElementById("bannerLabel").textContent = settings.banner_label || "FESTA";
-            document.getElementById("holidayTitle").textContent = settings.banner_title;
-            document.getElementById("holidayMessage").textContent = settings.banner_message || "";
-            const button = document.getElementById("holidayButton");
-            const link = settings.banner_button_link || "#produkter";
-            if (settings.banner_button_text && /^(#|https:\/\/)/.test(link)) {
-                button.textContent = settings.banner_button_text;
-                button.href = link;
-                button.hidden = false;
-            }
-            const alignment = { left: "flex-start", center: "center", right: "flex-end" }[settings.banner_align] || "center";
-            holidayBanner.style.justifyContent = alignment;
-            holidayBanner.style.textAlign = settings.banner_align || "center";
-            if (settings.banner_motion) holidayBanner.classList.add("holiday-ribbon--scroll");
-            if (settings.banner_image_url) {
-                holidayBanner.classList.add("holiday-ribbon--photo");
-                const photo = settings.banner_image_url.replace(/"/g, "%22");
-                holidayBanner.style.backgroundImage = `linear-gradient(rgba(58, 7, 84, 0.8), rgba(58, 7, 84, 0.8)), url("${photo}")`;
-            }
-            holidayBanner.hidden = false;
-        }
-    } catch (error) {
-        // Keep the default hero and hide the banner if the settings cannot be loaded.
-        console.error(error);
-    }
-}
-
 async function loadProductsFromSupabase() {
     const grid = document.getElementById("productGrid");
     if (!grid) return;
@@ -577,5 +531,4 @@ checkoutBtn?.addEventListener("click", (event) => {
 
 renderCart();
 setupProductSearch();
-loadSiteSettingsFromSupabase();
 loadProductsFromSupabase();
