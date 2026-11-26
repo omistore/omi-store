@@ -239,9 +239,13 @@ insert into public.store_site_settings (id) values (1)
 on conflict (id) do nothing;
 
 alter table public.store_site_settings
+  add column if not exists hero_badge text check (hero_badge is null or length(hero_badge) <= 60),
+  add column if not exists banner_label text check (banner_label is null or length(banner_label) <= 40),
   add column if not exists banner_active boolean not null default false,
   add column if not exists banner_title text check (banner_title is null or length(banner_title) <= 120),
-  add column if not exists banner_message text check (banner_message is null or length(banner_message) <= 300);
+  add column if not exists banner_message text check (banner_message is null or length(banner_message) <= 300),
+  add column if not exists banner_button_text text check (banner_button_text is null or length(banner_button_text) <= 40),
+  add column if not exists banner_button_link text check (banner_button_link is null or length(banner_button_link) <= 200);
 
 alter table public.store_site_settings enable row level security;
 

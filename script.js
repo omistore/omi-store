@@ -159,6 +159,7 @@ function bindCartImageFallbacks(container) {
 
 async function loadSiteSettingsFromSupabase() {
     const heroImage = document.getElementById("heroImage");
+    const heroBadge = document.getElementById("heroBadge");
     const heroMessage = document.getElementById("heroMessage");
     const holidayBanner = document.getElementById("holidayBanner");
     if (!window.OmiSupabase) return;
@@ -166,10 +167,19 @@ async function loadSiteSettingsFromSupabase() {
     try {
         const settings = await window.OmiSupabase.getSiteSettings();
         if (settings.hero_image_url && heroImage) heroImage.src = settings.hero_image_url;
+        if (settings.hero_badge && heroBadge) heroBadge.textContent = settings.hero_badge;
         if (settings.hero_message && heroMessage) heroMessage.textContent = settings.hero_message;
         if (settings.banner_active && settings.banner_title && holidayBanner) {
+            document.getElementById("bannerLabel").textContent = settings.banner_label || "FESTA";
             document.getElementById("holidayTitle").textContent = settings.banner_title;
             document.getElementById("holidayMessage").textContent = settings.banner_message || "";
+            const button = document.getElementById("holidayButton");
+            const link = settings.banner_button_link || "#produkter";
+            if (settings.banner_button_text && /^(#|https:\/\/)/.test(link)) {
+                button.textContent = settings.banner_button_text;
+                button.href = link;
+                button.hidden = false;
+            }
             holidayBanner.hidden = false;
         }
     } catch (error) {

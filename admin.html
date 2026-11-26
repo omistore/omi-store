@@ -174,8 +174,8 @@
         <button class="tab active" type="button" data-view="dashboardView">Përmbledhje</button>
         <button class="tab" type="button" data-view="ordersView">Porositë</button>
         <button class="tab" type="button" data-view="productsView">Produktet</button>
-        <button class="tab" type="button" data-view="siteView">Faqja kryesore</button>
         <button class="tab" type="button" data-view="auditView">Historiku</button>
+        <button class="tab" type="button" data-view="siteView">Ballina</button>
       </nav>
 
       <section class="view active" id="dashboardView">
@@ -278,10 +278,10 @@
 
       <section class="view" id="siteView">
         <div class="panel-head">
-          <div><h1>Faqja kryesore</h1><p>Ndryshoni foton dhe mesazhin kryesor të faqes, p.sh. për festa.</p></div>
+          <div><h1>Ballina</h1><p>Kontrolloni foton, tekstet, festat dhe zbritjet e faqes kryesore.</p></div>
         </div>
         <form class="card product-form" id="siteForm">
-          <h2>Foto dhe mesazhi kryesor</h2>
+          <h2>Ballina: foto dhe tekstet</h2>
           <div class="form-grid">
             <div class="field full">
               <label for="heroImageFile">Foto kryesore</label>
@@ -289,10 +289,15 @@
               <small class="field-hint">Lëreni bosh për të mbajtur foton aktuale.</small>
               <div class="image-preview-grid" id="heroImagePreview"></div>
             </div>
+            <div class="field"><label for="heroBadge">Etiketa e ballinës (maks. 60)</label><input id="heroBadge" maxlength="60" /></div>
             <div class="field full"><label for="heroMessage">Mesazhi kryesor (maks. 240 karaktere)</label><textarea id="heroMessage" maxlength="240"></textarea></div>
-            <div class="field full check"><input id="bannerActive" type="checkbox" /><label for="bannerActive">Shfaq kolonën e festës në faqe</label></div>
-            <div class="field full"><label for="bannerTitle">Titulli i festës (maks. 120 karaktere)</label><input id="bannerTitle" maxlength="120" placeholder="Gëzuar festat!" /></div>
-            <div class="field full"><label for="bannerMessage">Mesazhi i festës (maks. 300 karaktere)</label><textarea id="bannerMessage" maxlength="300"></textarea></div>
+            <h2 style="grid-column: 1 / -1; margin-top: 10px">Banner festash ose zbritjesh</h2>
+            <div class="field full check"><input id="bannerActive" type="checkbox" /><label for="bannerActive">Shfaq bannerin në faqe</label></div>
+            <div class="field"><label for="bannerLabel">Etiketa (p.sh. FESTA, ZBRITJE)</label><input id="bannerLabel" maxlength="40" placeholder="FESTA" /></div>
+            <div class="field"><label for="bannerTitle">Titulli (maks. 120 karaktere)</label><input id="bannerTitle" maxlength="120" placeholder="Gëzuar festat!" /></div>
+            <div class="field full"><label for="bannerMessage">Mesazhi (maks. 300 karaktere)</label><textarea id="bannerMessage" maxlength="300"></textarea></div>
+            <div class="field"><label for="bannerButtonText">Teksti i butonit (opsional)</label><input id="bannerButtonText" maxlength="40" placeholder="Shiko produktet" /></div>
+            <div class="field"><label for="bannerButtonLink">Lidhja e butonit</label><input id="bannerButtonLink" maxlength="200" placeholder="#produkter ose https://..." /></div>
             <div class="field full"><button class="primary-btn full-btn" id="saveSite" type="submit">Ruaj faqen</button></div>
             <div class="field full"><button class="secondary-btn full-btn" id="resetSite" type="button">Kthe fotën origjinale</button></div>
             <div class="error field full" id="siteError"></div>
@@ -690,7 +695,7 @@
       const [loadedOrders, loadedProducts, loadedSite] = await Promise.all([
         window.OmiSupabase.getOrders(),
         window.OmiSupabase.getAdminProducts(),
-        window.OmiSupabase.getSiteSettings()
+        window.OmiSupabase.getSiteSettings().catch(() => ({}))
       ]);
       orders = loadedOrders || [];
       products = loadedProducts || [];
@@ -704,10 +709,14 @@
     }
 
     function renderSite() {
+      document.getElementById("heroBadge").value = siteSettings.hero_badge || "";
       document.getElementById("heroMessage").value = siteSettings.hero_message || "";
       document.getElementById("bannerActive").checked = Boolean(siteSettings.banner_active);
+      document.getElementById("bannerLabel").value = siteSettings.banner_label || "";
       document.getElementById("bannerTitle").value = siteSettings.banner_title || "";
       document.getElementById("bannerMessage").value = siteSettings.banner_message || "";
+      document.getElementById("bannerButtonText").value = siteSettings.banner_button_text || "";
+      document.getElementById("bannerButtonLink").value = siteSettings.banner_button_link || "";
       renderHeroPreview(siteSettings.hero_image_url || "hero-products.png", "Foto kryesore aktuale");
     }
 
@@ -728,8 +737,13 @@
       const file = document.getElementById("heroImageFile").files[0];
       const bannerActive = document.getElementById("bannerActive").checked;
       const bannerTitle = document.getElementById("bannerTitle").value.trim();
+      const bannerButtonLink = document.getElementById("bannerButtonLink").value.trim();
       if (bannerActive && !bannerTitle) {
-        document.getElementById("siteError").textContent = "Shkruani titullin e festës para se ta aktivizoni.";
+        document.getElementById("siteError").textContent = "Shkruani titullin para se ta aktivizoni bannerin.";
+        return;
+      }
+      if (bannerButtonLink && !/^(#|https:\/\/)/.test(bannerButtonLink)) {
+        document.getElementById("siteError").textContent = "Lidhja e butonit duhet të fillojë me # ose https://";
         return;
       }
       const oldImageUrl = siteSettings.hero_image_url;
@@ -739,10 +753,14 @@
         const newImageUrl = file ? await window.OmiSupabase.uploadProductImage(file) : oldImageUrl;
         const settings = {
           hero_image_url: newImageUrl || null,
+          hero_badge: document.getElementById("heroBadge").value.trim() || null,
           hero_message: document.getElementById("heroMessage").value.trim() || null,
           banner_active: bannerActive,
+          banner_label: document.getElementById("bannerLabel").value.trim() || null,
           banner_title: bannerTitle || null,
-          banner_message: document.getElementById("bannerMessage").value.trim() || null
+          banner_message: document.getElementById("bannerMessage").value.trim() || null,
+          banner_button_text: document.getElementById("bannerButtonText").value.trim() || null,
+          banner_button_link: bannerButtonLink || null
         };
         await window.OmiSupabase.updateSiteSettings(settings);
         if (file && oldImageUrl) await window.OmiSupabase.deleteProductImages([oldImageUrl]).catch(() => {});

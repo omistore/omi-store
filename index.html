@@ -15,7 +15,7 @@
     "logo": "https://omistoree.com/favicon.png"
   }
   </script>
-  <link rel="stylesheet" href="./style.css?v=36" />
+  <link rel="stylesheet" href="./style.css?v=37" />
 </head>
 <body>
   <header class="header">
@@ -45,7 +45,7 @@
   <main id="ballina">
     <section class="hero">
       <div class="hero-content">
-        <span class="hero-badge">Produkte praktike • Shitje online</span>
+        <span id="heroBadge" class="hero-badge">Produkte praktike • Shitje online</span>
         <h1>Mirësevini në<br><span>OMI STORE</span></h1>
         <p id="heroMessage">Gjej produkte të dobishme për shtëpinë, teknologjinë dhe përditshmërinë tuaj.</p>
         <div class="hero-buttons">
@@ -90,9 +90,10 @@
 
     <section class="holiday-banner" id="holidayBanner" hidden>
       <div class="holiday-banner-content">
-        <span class="section-label">FESTA</span>
+        <span id="bannerLabel" class="section-label">FESTA</span>
         <h2 id="holidayTitle"></h2>
         <p id="holidayMessage"></p>
+        <a id="holidayButton" class="hero-btn" href="#produkter" hidden></a>
       </div>
     </section>
 
@@ -330,6 +331,6 @@
 
   <script src="./supabase-config.js"></script>
   <script src="./supabase-client.js?v=3"></script>
-  <script src="./script.js?v=10"></script>
+  <script src="./script.js?v=11"></script>
 </body>
 </html>

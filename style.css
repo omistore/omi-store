@@ -784,8 +784,14 @@ textarea {
 
 /* HOLIDAY BANNER */
 
-.holiday-banner[hidden] {
+.holiday-banner[hidden],
+.holiday-banner [hidden] {
     display: none;
+}
+
+.holiday-banner .hero-btn {
+    display: inline-block;
+    margin-top: 22px;
 }
 
 .holiday-banner {
