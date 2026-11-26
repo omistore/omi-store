@@ -169,6 +169,12 @@ async function loadSiteSettingsFromSupabase() {
         if (settings.hero_image_url && heroImage) heroImage.src = settings.hero_image_url;
         if (settings.hero_badge && heroBadge) heroBadge.textContent = settings.hero_badge;
         if (settings.hero_message && heroMessage) heroMessage.textContent = settings.hero_message;
+        const heroButton = document.getElementById("heroButton");
+        const heroButtonLink = settings.hero_button_link || "#produkter";
+        if (settings.hero_button_text && heroButton && /^(#|https:\/\/)/.test(heroButtonLink)) {
+            document.getElementById("heroButtonText").textContent = settings.hero_button_text;
+            heroButton.href = heroButtonLink;
+        }
         if (settings.banner_active && settings.banner_title && holidayBanner) {
             document.getElementById("bannerLabel").textContent = settings.banner_label || "FESTA";
             document.getElementById("holidayTitle").textContent = settings.banner_title;

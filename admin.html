@@ -291,6 +291,8 @@
             </div>
             <div class="field"><label for="heroBadge">Etiketa e ballinës (maks. 60)</label><input id="heroBadge" maxlength="60" /></div>
             <div class="field full"><label for="heroMessage">Mesazhi kryesor (maks. 240 karaktere)</label><textarea id="heroMessage" maxlength="240"></textarea></div>
+            <div class="field"><label for="heroButtonText">Teksti i butonit kryesor</label><input id="heroButtonText" maxlength="40" placeholder="Shiko produktet" /></div>
+            <div class="field"><label for="heroButtonLink">Lidhja e butonit kryesor</label><input id="heroButtonLink" maxlength="200" placeholder="#produkter ose https://..." /></div>
             <h2 style="grid-column: 1 / -1; margin-top: 10px">Banner festash ose zbritjesh</h2>
             <div class="field full check"><input id="bannerActive" type="checkbox" /><label for="bannerActive">Shfaq bannerin në faqe</label></div>
             <div class="field"><label for="bannerLabel">Etiketa (p.sh. FESTA, ZBRITJE)</label><input id="bannerLabel" maxlength="40" placeholder="FESTA" /></div>
@@ -719,6 +721,8 @@
     function renderSite() {
       document.getElementById("heroBadge").value = siteSettings.hero_badge || "";
       document.getElementById("heroMessage").value = siteSettings.hero_message || "";
+      document.getElementById("heroButtonText").value = siteSettings.hero_button_text || "";
+      document.getElementById("heroButtonLink").value = siteSettings.hero_button_link || "";
       document.getElementById("bannerActive").checked = Boolean(siteSettings.banner_active);
       document.getElementById("bannerLabel").value = siteSettings.banner_label || "";
       document.getElementById("bannerTitle").value = siteSettings.banner_title || "";
@@ -772,6 +776,8 @@
           hero_image_url: newImageUrl || null,
           hero_badge: document.getElementById("heroBadge").value.trim() || null,
           hero_message: document.getElementById("heroMessage").value.trim() || null,
+          hero_button_text: document.getElementById("heroButtonText").value.trim() || null,
+          hero_button_link: document.getElementById("heroButtonLink").value.trim() || null,
           banner_active: bannerActive,
           banner_label: document.getElementById("bannerLabel").value.trim() || null,
           banner_title: bannerTitle || null,
