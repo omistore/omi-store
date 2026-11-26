@@ -290,6 +290,9 @@
               <div class="image-preview-grid" id="heroImagePreview"></div>
             </div>
             <div class="field full"><label for="heroMessage">Mesazhi kryesor (maks. 240 karaktere)</label><textarea id="heroMessage" maxlength="240"></textarea></div>
+            <div class="field full check"><input id="bannerActive" type="checkbox" /><label for="bannerActive">Shfaq kolonën e festës në faqe</label></div>
+            <div class="field full"><label for="bannerTitle">Titulli i festës (maks. 120 karaktere)</label><input id="bannerTitle" maxlength="120" placeholder="Gëzuar festat!" /></div>
+            <div class="field full"><label for="bannerMessage">Mesazhi i festës (maks. 300 karaktere)</label><textarea id="bannerMessage" maxlength="300"></textarea></div>
             <div class="field full"><button class="primary-btn full-btn" id="saveSite" type="submit">Ruaj faqen</button></div>
             <div class="field full"><button class="secondary-btn full-btn" id="resetSite" type="button">Kthe fotën origjinale</button></div>
             <div class="error field full" id="siteError"></div>
@@ -702,6 +705,9 @@
 
     function renderSite() {
       document.getElementById("heroMessage").value = siteSettings.hero_message || "";
+      document.getElementById("bannerActive").checked = Boolean(siteSettings.banner_active);
+      document.getElementById("bannerTitle").value = siteSettings.banner_title || "";
+      document.getElementById("bannerMessage").value = siteSettings.banner_message || "";
       renderHeroPreview(siteSettings.hero_image_url || "hero-products.png", "Foto kryesore aktuale");
     }
 
@@ -720,15 +726,27 @@
       const saveButton = document.getElementById("saveSite");
       const siteError = document.getElementById("siteError");
       const file = document.getElementById("heroImageFile").files[0];
-      const message = document.getElementById("heroMessage").value.trim();
+      const bannerActive = document.getElementById("bannerActive").checked;
+      const bannerTitle = document.getElementById("bannerTitle").value.trim();
+      if (bannerActive && !bannerTitle) {
+        document.getElementById("siteError").textContent = "Shkruani titullin e festës para se ta aktivizoni.";
+        return;
+      }
       const oldImageUrl = siteSettings.hero_image_url;
       saveButton.disabled = true;
       siteError.textContent = "";
       try {
         const newImageUrl = file ? await window.OmiSupabase.uploadProductImage(file) : oldImageUrl;
-        await window.OmiSupabase.updateSiteSettings({ hero_image_url: newImageUrl || null, hero_message: message || null });
+        const settings = {
+          hero_image_url: newImageUrl || null,
+          hero_message: document.getElementById("heroMessage").value.trim() || null,
+          banner_active: bannerActive,
+          banner_title: bannerTitle || null,
+          banner_message: document.getElementById("bannerMessage").value.trim() || null
+        };
+        await window.OmiSupabase.updateSiteSettings(settings);
         if (file && oldImageUrl) await window.OmiSupabase.deleteProductImages([oldImageUrl]).catch(() => {});
-        siteSettings = { hero_image_url: newImageUrl || null, hero_message: message || null };
+        siteSettings = settings;
         document.getElementById("heroImageFile").value = "";
         renderSite();
         recordAudit("Përditësoi faqen kryesore", "Faqja kryesore", file ? "Foto e re" : "Mesazhi");

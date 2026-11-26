@@ -160,14 +160,20 @@ function bindCartImageFallbacks(container) {
 async function loadSiteSettingsFromSupabase() {
     const heroImage = document.getElementById("heroImage");
     const heroMessage = document.getElementById("heroMessage");
-    if (!window.OmiSupabase || (!heroImage && !heroMessage)) return;
+    const holidayBanner = document.getElementById("holidayBanner");
+    if (!window.OmiSupabase) return;
 
     try {
         const settings = await window.OmiSupabase.getSiteSettings();
         if (settings.hero_image_url && heroImage) heroImage.src = settings.hero_image_url;
         if (settings.hero_message && heroMessage) heroMessage.textContent = settings.hero_message;
+        if (settings.banner_active && settings.banner_title && holidayBanner) {
+            document.getElementById("holidayTitle").textContent = settings.banner_title;
+            document.getElementById("holidayMessage").textContent = settings.banner_message || "";
+            holidayBanner.hidden = false;
+        }
     } catch (error) {
-        // Keep the default hero if the settings cannot be loaded.
+        // Keep the default hero and hide the banner if the settings cannot be loaded.
         console.error(error);
     }
 }

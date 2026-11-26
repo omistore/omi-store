@@ -238,6 +238,11 @@ create table if not exists public.store_site_settings (
 insert into public.store_site_settings (id) values (1)
 on conflict (id) do nothing;
 
+alter table public.store_site_settings
+  add column if not exists banner_active boolean not null default false,
+  add column if not exists banner_title text check (banner_title is null or length(banner_title) <= 120),
+  add column if not exists banner_message text check (banner_message is null or length(banner_message) <= 300);
+
 alter table public.store_site_settings enable row level security;
 
 grant select on public.store_site_settings to anon, authenticated;
