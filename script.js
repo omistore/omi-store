@@ -157,6 +157,21 @@ function bindCartImageFallbacks(container) {
     });
 }
 
+async function loadSiteSettingsFromSupabase() {
+    const heroImage = document.getElementById("heroImage");
+    const heroMessage = document.getElementById("heroMessage");
+    if (!window.OmiSupabase || (!heroImage && !heroMessage)) return;
+
+    try {
+        const settings = await window.OmiSupabase.getSiteSettings();
+        if (settings.hero_image_url && heroImage) heroImage.src = settings.hero_image_url;
+        if (settings.hero_message && heroMessage) heroMessage.textContent = settings.hero_message;
+    } catch (error) {
+        // Keep the default hero if the settings cannot be loaded.
+        console.error(error);
+    }
+}
+
 async function loadProductsFromSupabase() {
     const grid = document.getElementById("productGrid");
     if (!grid) return;
@@ -531,4 +546,5 @@ checkoutBtn?.addEventListener("click", (event) => {
 
 renderCart();
 setupProductSearch();
+loadSiteSettingsFromSupabase();
 loadProductsFromSupabase();

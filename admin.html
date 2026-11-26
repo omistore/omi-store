@@ -174,6 +174,7 @@
         <button class="tab active" type="button" data-view="dashboardView">Përmbledhje</button>
         <button class="tab" type="button" data-view="ordersView">Porositë</button>
         <button class="tab" type="button" data-view="productsView">Produktet</button>
+        <button class="tab" type="button" data-view="siteView">Faqja kryesore</button>
         <button class="tab" type="button" data-view="auditView">Historiku</button>
       </nav>
 
@@ -275,6 +276,26 @@
         </div>
       </section>
 
+      <section class="view" id="siteView">
+        <div class="panel-head">
+          <div><h1>Faqja kryesore</h1><p>Ndryshoni foton dhe mesazhin kryesor të faqes, p.sh. për festa.</p></div>
+        </div>
+        <form class="card product-form" id="siteForm">
+          <h2>Foto dhe mesazhi kryesor</h2>
+          <div class="form-grid">
+            <div class="field full">
+              <label for="heroImageFile">Foto kryesore</label>
+              <input id="heroImageFile" type="file" accept="image/*" />
+              <small class="field-hint">Lëreni bosh për të mbajtur foton aktuale.</small>
+              <div class="image-preview-grid" id="heroImagePreview"></div>
+            </div>
+            <div class="field full"><label for="heroMessage">Mesazhi kryesor (maks. 240 karaktere)</label><textarea id="heroMessage" maxlength="240"></textarea></div>
+            <div class="field full"><button class="primary-btn full-btn" id="saveSite" type="submit">Ruaj faqen</button></div>
+            <div class="field full"><button class="secondary-btn full-btn" id="resetSite" type="button">Kthe fotën origjinale</button></div>
+            <div class="error field full" id="siteError"></div>
+          </div>
+        </form>
+      </section>
       <section class="view" id="auditView">
         <div class="panel-head">
           <div><h1>Historiku i administratorit</h1><p>Aktivitetet e regjistruara në këtë browser (maks. 200).</p></div>
@@ -303,6 +324,7 @@
     let previewObjectUrls = [];
     let products = [];
     let orders = [];
+    let siteSettings = {};
     let selectedProducts = new Set();
 
     function escapeHtml(value) {
@@ -662,18 +684,77 @@
     }
 
     async function refreshData() {
-      const [loadedOrders, loadedProducts] = await Promise.all([
+      const [loadedOrders, loadedProducts, loadedSite] = await Promise.all([
         window.OmiSupabase.getOrders(),
-        window.OmiSupabase.getAdminProducts()
+        window.OmiSupabase.getAdminProducts(),
+        window.OmiSupabase.getSiteSettings()
       ]);
       orders = loadedOrders || [];
       products = loadedProducts || [];
+      siteSettings = loadedSite || {};
       selectedProducts = new Set([...selectedProducts].filter((name) => products.some((product) => product.name === name)));
       renderDashboard();
       renderOrders();
       renderProducts();
+      renderSite();
       renderAudit();
     }
+
+    function renderSite() {
+      document.getElementById("heroMessage").value = siteSettings.hero_message || "";
+      renderHeroPreview(siteSettings.hero_image_url || "hero-products.png", "Foto kryesore aktuale");
+    }
+
+    function renderHeroPreview(src, alt) {
+      document.getElementById("heroImagePreview").innerHTML = `<img src="${escapeHtml(src)}" alt="${escapeHtml(alt)}" />`;
+    }
+
+    document.getElementById("heroImageFile").addEventListener("change", (event) => {
+      const file = event.currentTarget.files[0];
+      if (file) renderHeroPreview(URL.createObjectURL(file), "Foto e re");
+      else renderHeroPreview(siteSettings.hero_image_url || "hero-products.png", "Foto kryesore aktuale");
+    });
+
+    document.getElementById("siteForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const saveButton = document.getElementById("saveSite");
+      const siteError = document.getElementById("siteError");
+      const file = document.getElementById("heroImageFile").files[0];
+      const message = document.getElementById("heroMessage").value.trim();
+      const oldImageUrl = siteSettings.hero_image_url;
+      saveButton.disabled = true;
+      siteError.textContent = "";
+      try {
+        const newImageUrl = file ? await window.OmiSupabase.uploadProductImage(file) : oldImageUrl;
+        await window.OmiSupabase.updateSiteSettings({ hero_image_url: newImageUrl || null, hero_message: message || null });
+        if (file && oldImageUrl) await window.OmiSupabase.deleteProductImages([oldImageUrl]).catch(() => {});
+        siteSettings = { hero_image_url: newImageUrl || null, hero_message: message || null };
+        document.getElementById("heroImageFile").value = "";
+        renderSite();
+        recordAudit("Përditësoi faqen kryesore", "Faqja kryesore", file ? "Foto e re" : "Mesazhi");
+      } catch (error) {
+        siteError.textContent = error.message;
+      } finally {
+        saveButton.disabled = false;
+      }
+    });
+
+    document.getElementById("resetSite").addEventListener("click", async () => {
+      if (!siteSettings.hero_image_url) return;
+      if (!confirm("Ta kthejmë fotën kryesore origjinale?")) return;
+      const siteError = document.getElementById("siteError");
+      const oldImageUrl = siteSettings.hero_image_url;
+      siteError.textContent = "";
+      try {
+        await window.OmiSupabase.updateSiteSettings({ hero_image_url: null });
+        await window.OmiSupabase.deleteProductImages([oldImageUrl]).catch(() => {});
+        siteSettings.hero_image_url = null;
+        renderSite();
+        recordAudit("Ktheu fotën origjinale", "Faqja kryesore");
+      } catch (error) {
+        siteError.textContent = error.message;
+      }
+    });
 
     document.getElementById("productImage").addEventListener("change", (event) => {
       selectedImageFiles = Array.from(event.currentTarget.files || []);
@@ -806,7 +887,7 @@
       panel.style.display = "block";
       document.getElementById("logout").style.display = "block";
       document.getElementById("openStore").style.display = "block";
-      const hashView = { "#dashboard": "dashboardView", "#orders": "ordersView", "#products": "productsView", "#audit": "auditView" }[location.hash];
+      const hashView = { "#dashboard": "dashboardView", "#orders": "ordersView", "#products": "productsView", "#site": "siteView", "#audit": "auditView" }[location.hash];
       if (hashView) activateView(hashView);
       await refreshData();
     }

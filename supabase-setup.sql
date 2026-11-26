@@ -226,3 +226,40 @@ create policy "Store admins can delete product images"
       where store_admins.user_id = (select auth.uid())
     )
   );
+
+-- Homepage hero photo and message, editable from the admin panel.
+create table if not exists public.store_site_settings (
+  id integer primary key default 1 check (id = 1),
+  hero_image_url text,
+  hero_message text check (hero_message is null or length(hero_message) <= 240),
+  updated_at timestamptz not null default now()
+);
+
+insert into public.store_site_settings (id) values (1)
+on conflict (id) do nothing;
+
+alter table public.store_site_settings enable row level security;
+
+grant select on public.store_site_settings to anon, authenticated;
+grant update on public.store_site_settings to authenticated;
+
+drop policy if exists "Public can view site settings" on public.store_site_settings;
+create policy "Public can view site settings"
+  on public.store_site_settings for select to anon, authenticated
+  using (true);
+
+drop policy if exists "Store admins can update site settings" on public.store_site_settings;
+create policy "Store admins can update site settings"
+  on public.store_site_settings for update to authenticated
+  using (
+    exists (
+      select 1 from public.store_admins
+      where store_admins.user_id = (select auth.uid())
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.store_admins
+      where store_admins.user_id = (select auth.uid())
+    )
+  );

@@ -352,6 +352,33 @@
     await deleteProductImages(getProductImages(product));
   }
 
+  async function getSiteSettings() {
+    const { url, anonKey } = getConfig();
+    const response = await fetch(`${url}/rest/v1/store_site_settings?select=*&id=eq.1`, {
+      headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` }
+    });
+    const rows = await readResponse(response);
+    return Array.isArray(rows) && rows.length ? rows[0] : {};
+  }
+
+  async function updateSiteSettings(settings) {
+    const { url, anonKey } = getConfig();
+    const session = await getValidSession();
+    const params = new URLSearchParams({ id: "eq.1", select: "id" });
+    const response = await fetch(`${url}/rest/v1/store_site_settings?${params}`, {
+      method: "PATCH",
+      headers: {
+        apikey: anonKey,
+        Authorization: `Bearer ${session.access_token}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation"
+      },
+      body: JSON.stringify({ ...settings, updated_at: new Date().toISOString() })
+    });
+    const rows = await readResponse(response);
+    if (!Array.isArray(rows) || rows.length === 0) throw new Error("Cilësimet nuk u ruajtën. Kontrolloni lejet e administratorit.");
+  }
+
   window.OmiSupabase = {
     hasSession: () => Boolean(readSession()?.access_token),
     signIn,
@@ -364,6 +391,8 @@
     deleteOrder,
     getActiveProducts,
     getAdminProducts,
+    getSiteSettings,
+    updateSiteSettings,
     getProductImages,
     serializeProductImages,
     uploadProductImage,
