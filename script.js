@@ -180,6 +180,14 @@ async function loadSiteSettingsFromSupabase() {
                 button.href = link;
                 button.hidden = false;
             }
+            const alignment = { left: "flex-start", center: "center", right: "flex-end" }[settings.banner_align] || "center";
+            holidayBanner.style.justifyContent = alignment;
+            holidayBanner.style.textAlign = settings.banner_align || "center";
+            if (settings.banner_image_url) {
+                holidayBanner.classList.add("holiday-ribbon--photo");
+                const photo = settings.banner_image_url.replace(/"/g, "%22");
+                holidayBanner.style.backgroundImage = `linear-gradient(rgba(58, 7, 84, 0.8), rgba(58, 7, 84, 0.8)), url("${photo}")`;
+            }
             holidayBanner.hidden = false;
         }
     } catch (error) {

@@ -296,6 +296,13 @@
             <div class="field"><label for="bannerLabel">Etiketa (p.sh. FESTA, ZBRITJE)</label><input id="bannerLabel" maxlength="40" placeholder="FESTA" /></div>
             <div class="field"><label for="bannerTitle">Titulli (maks. 120 karaktere)</label><input id="bannerTitle" maxlength="120" placeholder="Gëzuar festat!" /></div>
             <div class="field full"><label for="bannerMessage">Mesazhi (maks. 300 karaktere)</label><textarea id="bannerMessage" maxlength="300"></textarea></div>
+            <div class="field"><label for="bannerAlign">Pozicioni i tekstit</label><select id="bannerAlign"><option value="left">Majtas</option><option value="center">Qendër</option><option value="right">Djathtas</option></select></div>
+            <div class="field full">
+              <label for="bannerImageFile">Foto e bannerit (opsionale)</label>
+              <input id="bannerImageFile" type="file" accept="image/*" />
+              <label class="check"><input id="bannerImageRemove" type="checkbox" /> Hiq foton e bannerit</label>
+              <small class="field-hint">Nëse zgjidhni foto, banneri shfaqet me foto në sfond.</small>
+            </div>
             <div class="field"><label for="bannerButtonText">Teksti i butonit (opsional)</label><input id="bannerButtonText" maxlength="40" placeholder="Shiko produktet" /></div>
             <div class="field"><label for="bannerButtonLink">Lidhja e butonit</label><input id="bannerButtonLink" maxlength="200" placeholder="#produkter ose https://..." /></div>
             <div class="field full"><button class="primary-btn full-btn" id="saveSite" type="submit">Ruaj faqen</button></div>
@@ -717,6 +724,9 @@
       document.getElementById("bannerMessage").value = siteSettings.banner_message || "";
       document.getElementById("bannerButtonText").value = siteSettings.banner_button_text || "";
       document.getElementById("bannerButtonLink").value = siteSettings.banner_button_link || "";
+      document.getElementById("bannerAlign").value = siteSettings.banner_align || "center";
+      document.getElementById("bannerImageRemove").checked = false;
+      document.getElementById("bannerImageFile").value = "";
       renderHeroPreview(siteSettings.hero_image_url || "hero-products.png", "Foto kryesore aktuale");
     }
 
@@ -751,6 +761,11 @@
       siteError.textContent = "";
       try {
         const newImageUrl = file ? await window.OmiSupabase.uploadProductImage(file) : oldImageUrl;
+        const bannerImageFile = document.getElementById("bannerImageFile").files[0];
+        const oldBannerImageUrl = siteSettings.banner_image_url;
+        const newBannerImageUrl = bannerImageFile
+          ? await window.OmiSupabase.uploadProductImage(bannerImageFile)
+          : (document.getElementById("bannerImageRemove").checked ? null : oldBannerImageUrl);
         const settings = {
           hero_image_url: newImageUrl || null,
           hero_badge: document.getElementById("heroBadge").value.trim() || null,
@@ -760,9 +775,12 @@
           banner_title: bannerTitle || null,
           banner_message: document.getElementById("bannerMessage").value.trim() || null,
           banner_button_text: document.getElementById("bannerButtonText").value.trim() || null,
-          banner_button_link: bannerButtonLink || null
+          banner_button_link: bannerButtonLink || null,
+          banner_image_url: newBannerImageUrl || null,
+          banner_align: document.getElementById("bannerAlign").value
         };
         await window.OmiSupabase.updateSiteSettings(settings);
+        if (oldBannerImageUrl && oldBannerImageUrl !== newBannerImageUrl) await window.OmiSupabase.deleteProductImages([oldBannerImageUrl]).catch(() => {});
         if (file && oldImageUrl) await window.OmiSupabase.deleteProductImages([oldImageUrl]).catch(() => {});
         siteSettings = settings;
         document.getElementById("heroImageFile").value = "";

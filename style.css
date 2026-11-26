@@ -820,6 +820,12 @@ textarea {
     color: rgba(255, 255, 255, 0.85);
 }
 
+.holiday-ribbon--photo {
+    padding: 28px 20px;
+    background-size: cover;
+    background-position: center;
+}
+
 .holiday-ribbon-link {
     padding: 6px 14px;
     border-radius: 999px;
