@@ -15,7 +15,7 @@
     "logo": "https://omistoree.com/favicon.png"
   }
   </script>
-  <link rel="stylesheet" href="./style.css?v=37" />
+  <link rel="stylesheet" href="./style.css?v=38" />
 </head>
 <body>
   <header class="header">
@@ -41,6 +41,13 @@
       <span class="cart-count" id="headerCartCount">0</span>
     </button>
   </header>
+
+  <div class="holiday-ribbon" id="holidayBanner" hidden>
+    <span id="bannerLabel" class="holiday-ribbon-label">FESTA</span>
+    <span id="holidayTitle" class="holiday-ribbon-title"></span>
+    <span id="holidayMessage" class="holiday-ribbon-message"></span>
+    <a id="holidayButton" class="holiday-ribbon-link" href="#produkter" hidden></a>
+  </div>
 
   <main id="ballina">
     <section class="hero">
@@ -85,15 +92,6 @@
           <strong>Dërgesa të shpejta</strong>
           <small>Transport i shpejtë</small>
         </div>
-      </div>
-    </section>
-
-    <section class="holiday-banner" id="holidayBanner" hidden>
-      <div class="holiday-banner-content">
-        <span id="bannerLabel" class="section-label">FESTA</span>
-        <h2 id="holidayTitle"></h2>
-        <p id="holidayMessage"></p>
-        <a id="holidayButton" class="hero-btn" href="#produkter" hidden></a>
       </div>
     </section>
 
